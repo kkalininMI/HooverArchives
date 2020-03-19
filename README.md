@@ -91,7 +91,7 @@ This package implements various metadata processing tasks performed at the Hoove
 
 3. <em> fromSERIEStoFILES(dat = NULL, issueDates = NULL, locale = "English") </em>
 
-  This function helps to obtain "Files" variable by splitting the issueDates into separate years.
+  This function helps to obtain "Files" variable by splitting issue dates into separate rows.
   
   + *dat* -- original dataframe.
   + *issueDates* -- variables containing issue dates.
