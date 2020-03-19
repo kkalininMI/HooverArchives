@@ -1,5 +1,5 @@
 # HooverArchives
- This package performs multiple metadata processing tasks at the Hoover Archives
+This package implements various metadata processing tasks performed at the Hoover Institution Library & Archives.
 
 
 1. <em> fromXMLtoCSV(filename, item_nodes, collection_nodes, excludeFiles = NULL, ...) </em>
