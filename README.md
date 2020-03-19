@@ -81,9 +81,10 @@ This package implements various metadata processing tasks performed at the Hoove
                                     box_barcode="Box_Barcode",
                                     top_container="Final.Box..")
     
-    datHarvard<-subset(coverted.dat, select=c("Group", "Title", "Hierarchical_Relationship",	"Processing_Information",
-                                               "Description_Level",	"Date", "Top_Container_[indicator]", "Box_Barcode",
-                                               "Scope_and_content"))
+    datHarvard<-subset(coverted.dat, select=c("Group", "Title", "Hierarchical_Relationship",	
+                                              "Processing_Information", "Description_Level",	
+                                              "Date", "Top_Container_[indicator]", "Box_Barcode",
+                                              "Scope_and_content"))
     #Save file in xlsx to preserve diacritic characters
     #write.xlsx(datHarvard, "convertedtoHarvardStyle.xlsx", sheetName = "HarvardStyle", col.names = TRUE)
 
@@ -125,12 +126,12 @@ This package implements various metadata processing tasks performed at the Hoove
   This function helps to convert transliterated Cyrillic to original Cyrillic.
 
   + *mdat* -- character vector to be back-transliterated to Cyrillic.
-  + *LARU* -- rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are listed in the file "transliterationLARU.csv").
-  + *RURU* -- rules to correct transliterated original Cyrillic (the rules are listed in the file "transliterationRURU.csv").
+  + *LARU* -- rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are defined in the file "transliterationLARU.csv").
+  + *RURU* -- rules to correct transliterated original Cyrillic (the rules are defined in the file "transliterationRURU.csv").
   + *EnglishDetection* -- if set to TRUE, the script avoids transliteration of words found in the English vocabulary (file: english.txt). If set to FALSE, only user defined stop words are used (file: stopwordsfile.csv).
   + *EnglishLength* -- threshold is set to ignore EnglishDectection words below given threshold.
   + *RussianCorrection* -- if set to TRUE, the script attempts to match every back-transliterated word with the Russian vocabulary (files: russian.txt and russian_surnames.txt).
-  + *SensitivityThreshold* -- is used only if RussianCorrection==TRUE. It determines algorithm's sensitivity to mismatches (numbers closer to 0 define higher sensitivity to mismatches). SensitivityThreshold is set to 0.1 by default.
+  + *SensitivityThreshold* -- is used if RussianCorrection==TRUE. It determines algorithm's sensitivity to mismatches (values closer to 0 stand for higher sensitivity to mismatches). By deafault, *sensitivityThreshold* is set to 0.1 by default.
 
  Example  
 
