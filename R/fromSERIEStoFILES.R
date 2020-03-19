@@ -1,5 +1,5 @@
 #' @title fromSERIEStoFILES function
-#' @description This function helps to obtain "Files" variable by splitting the issueDates into separate years
+#' @description This function helps to obtain "Files" variable by splitting the issueDates into separate years.
 #' @param dat original dataframe.
 #' @param issueDates Variables containing information
 #' @param locale  system's locale [locale = English]

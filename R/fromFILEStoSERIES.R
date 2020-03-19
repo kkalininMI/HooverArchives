@@ -15,7 +15,7 @@
 #' @import dplyr
 #' @import readxl
 #' @import xlsx
-#' @return Returns the vector of standardized and corrected dates.
+#' @return Returns altered dataframe.
 #' @examples
 #' library(HooverArchives)
 #' library(readxl)
