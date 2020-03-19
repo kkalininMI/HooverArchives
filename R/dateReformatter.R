@@ -14,6 +14,7 @@
 #' reformated.data <- dateReformatter(datesV)
 #' reformated.data
 
+
 dateReformatter<-function(datV){
 
   short.month<-c("Jan", "Feb", "Mar", "Apr",
@@ -60,12 +61,13 @@ dateReformatter<-function(datV){
 
 
   date_reformat<-function(datV, ...){
-
+    datV[datV==""]<-NA
     vector.s.semi<-strsplit(datV, ";")
     vector.s.coma<-lapply(vector.s.semi, function(x) strsplit(x, ","))
 
     for (i in 1:length(datV)){
       len_vector.s.coma<-length(vector.s.coma[[i]])
+      #if(len_vector.s.coma==0) len_vector.s.coma=1
       for(j in 1:len_vector.s.coma){
         len_vector.s.s<-length(vector.s.coma[[i]][[j]])
         for(k in 1:len_vector.s.s){
@@ -76,7 +78,8 @@ dateReformatter<-function(datV){
       vector.s.coma[[i]]<-paste(vector.s.coma[[i]], collapse=";")
     }
     result<-unlist(vector.s.coma)
-    return(result)}
+    return(result)
+    }
 
 
   extra_reformat<-function(refd){
@@ -117,6 +120,7 @@ dateReformatter<-function(datV){
     }
 
     result<-refdV
+
     return(result)}
 
   ##Main Body
