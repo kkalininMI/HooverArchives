@@ -67,17 +67,19 @@ dateReformatter<-function(datV){
 
     for (i in 1:length(datV)){
       len_vector.s.coma<-length(vector.s.coma[[i]])
-      #if(len_vector.s.coma==0) len_vector.s.coma=1
+
       for(j in 1:len_vector.s.coma){
         len_vector.s.s<-length(vector.s.coma[[i]][[j]])
-        for(k in 1:len_vector.s.s){
-          vector.s.coma[[i]][[j]][[k]]<-dateref(vector.s.coma[[i]][[j]][[k]], short.month)
-        }
-        vector.s.coma[[i]][[j]]<-paste(vector.s.coma[[i]][[j]], collapse=",")
+
+          for(k in 1:len_vector.s.s){
+            vector.s.coma[[i]][[j]][[k]]<-dateref(vector.s.coma[[i]][[j]][[k]], short.month)
+          }
+          vector.s.coma[[i]][[j]]<-paste(vector.s.coma[[i]][[j]], collapse=",")
       }
-      vector.s.coma[[i]]<-paste(vector.s.coma[[i]], collapse=";")
+        vector.s.coma[[i]]<-paste(vector.s.coma[[i]], collapse=";")
     }
     result<-unlist(vector.s.coma)
+
     return(result)
     }
 
