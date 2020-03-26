@@ -126,6 +126,7 @@ This package implements various metadata processing tasks performed at the Hoove
   This function helps to convert transliterated Cyrillic to original Cyrillic.
 
   + *mdat* -- character vector to be back-transliterated to Cyrillic.
+  + *tolanguage* -- 	language the text needs to be converted to ("Russian" by default). "Ukrainian" is an option.
   + *LARU* -- rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are defined in the file "transliterationLARU.csv").
   + *RURU* -- rules to correct transliterated original Cyrillic (the rules are defined in the file "transliterationRURU.csv").
   + *EnglishDetection* -- if set to TRUE, the script avoids transliteration of words found in the English vocabulary (file: english.txt). If set to FALSE, only user defined stop words are used (file: stopwordsfile.csv).
