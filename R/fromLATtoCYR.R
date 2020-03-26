@@ -1,8 +1,9 @@
 #' @title Latin to Cyrillic conversion function
 #' @description This function helps to convert transliterated Cyrillic to original Cyrillic.
 #' @param mdat character vector to be back-transliterated to Cyrillic.
-#' @param LARU rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are listed in the file "transliterationLARU.csv").
-#' @param RURU rules to correct transliterated original Cyrillic (the rules are listed in the file "transliterationRURU.csv").
+#' @param tolanguage language the text needs to be converted to ("Russian" by default)
+#' @param LAOR rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are listed in the file "transliterationLAOR.csv").
+#' @param OROR rules to correct transliterated original Cyrillic (the rules are listed in the file "transliterationOROR.csv").
 #' @param EnglishDetection if set to TRUE, the script avoids transliteration of words found in the English vocabulary (file: english.txt). If set to FALSE, only user defined stop words are used (file: stopwordsfile.csv).
 #' @param EnglishLength  threshold is set to ignore EnglishDectection words below given threshold.
 #' @param RussianCorrection if set to TRUE, the script attempts to match every back-transliterated word with the Russian vocabulary (files: russian.txt and russian_surnames.txt).
@@ -11,46 +12,63 @@
 #' @importFrom utils read.csv
 #' @importFrom utils read.table
 #' @importFrom stringdist stringdist
+#' @importFrom stringi stri_unescape_unicode
 #' @import dplyr
 #' @import devtools
 #' @return Returns the vector of transliterated characters in Cyrillic.
 #' @examples
 #' library(HooverArchives)
 #'
+#' # conversion to Russian
 #' dat<-c("Mezhdunarodnaia gazeta. Gl. redaktor: Iu. Zarechkin. Moscow, Russia. Semiweekly. 199?",
 #' "DEN' UCHITELIA komissiia po obrazovaniiu ob''edineniia Iabloko",
 #' "III-ii RIM vestnik Rossiiskogo patrioticheskogo dvizheniia. Redaktory: M. Artem'ev, V. Rugich. Moscow, Russia.")
 #'
-#' converteddata <- fromLATtoCYR(dat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, EnglishLength=4)
+#' converteddata_ru <- fromLATtoCYR(dat, LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE, EnglishLength=4)
+#'
+#'
+#'# conversion to Ukrainian
+#'dat<-read.csv(system.file("Ukraine_microform.csv", package="HooverArchives"),
+#'                      sep=";", encoding = "UTF-8", stringsAsFactors = FALSE)
+#'
+#' converteddata_uk <- fromLATtoCYR(dat$FIELD.245, tolanguage="Ukrainian")
 
-fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, EnglishLength=NULL, RussianCorrection=FALSE, SensitivityThreshold = 0.1){
+fromLATtoCYR<-function(mdat, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE,
+                       EnglishLength=NULL, RussianCorrection=FALSE, SensitivityThreshold = 0.1){
 
   #Global settings
-  Sys.setlocale("LC_ALL",locale = "Russian")
-  autodetected <- NULL
-  transRURU.vector <- NULL
-  transLARU.vector <- NULL
+  Sys.setlocale("LC_ALL",locale = tolanguage)
 
+  if(tolanguage=="Russian"){trvfilename="transliterationLARU.csv"; rrvfilename="transliterationRURU.csv";
+                           dicR<-read.table(system.file("russian.txt", package="HooverArchives"),
+                                             header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
+                           dicN<-read.table(system.file("russian_surnames.txt", package="HooverArchives"),
+                                             header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
+                           dicRS<-unname(unlist(dicR),unlist(dicN))}
+
+  if(tolanguage=="Ukrainian"){trvfilename="transliterationLAUK.csv"; rrvfilename=NULL}
+
+  autodetected <- NULL
+  transOROR.vector <- NULL
+  transLAOR.vector <- NULL
   #loading data
-  trv <- read.csv(system.file("transliterationLARU.csv", package="HooverArchives"), encoding = "UTF-8", stringsAsFactors=FALSE);
+  trv <- read.csv(system.file(trvfilename, package="HooverArchives"), encoding = "UTF-8", stringsAsFactors=FALSE);
   trv <- trv[,-1]
   trv <- data.frame(apply(trv, 2, function(y) gsub("\\_", " ", y)))
   trv[] <- lapply(trv, as.character)
 
-  rrv <- read.csv(system.file("transliterationRURU.csv", package="HooverArchives"), encoding = "UTF-8", stringsAsFactors=FALSE)
-  rrv <- data.frame(apply(rrv, 2, function(y) gsub("\\_", " ", y)))
-  rrv <- rrv[,-1]
-  rrv[] <- lapply(rrv, as.character)
+  if(!is.null(rrvfilename)){
+    rrv <- read.csv(system.file(rrvfilename, package="HooverArchives"), encoding = "UTF-8", stringsAsFactors=FALSE)
+    rrv <- data.frame(apply(rrv, 2, function(y) gsub("\\_", " ", y)))
+    rrv <- rrv[,-1]
+    rrv[] <- lapply(rrv, as.character)
+    }
+
 
   swf <- read.csv(system.file("stopwordsfile.csv", package="HooverArchives"), encoding = "UTF-8", stringsAsFactors=FALSE)
   swf <- data.frame(apply(swf, 2, function(y) gsub("\\_", " ", y)))
   stopwords <- as.character(swf$stopwords)
 
-  dicR<-read.table(system.file("russian.txt", package="HooverArchives"),
-                   header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
-  dicN<-read.table(system.file("russian_surnames.txt", package="HooverArchives"),
-                   header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
-  dicRS<-unname(unlist(dicR),unlist(dicN))
 
   #Functions
   stopwords_encoder <- function(stopwords){
@@ -142,14 +160,24 @@ fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, Engli
     #Operations
     colnames(dat) <- c("subV", "withV")
 
+    if(any(grepl("(?<=\\\\u)\\w{4}", dat$withV, perl=TRUE))){
+      dat$withV[grepl("(?<=\\\\u)\\w{4}", dat$withV, perl=TRUE)]<-
+        stri_unescape_unicode((dat$withV[grepl("(?<=\\\\u)\\w{4}", dat$withV, perl=TRUE)]))
+    }
+
+    if(any(is.na(dat$withV))){
+      dat$withV[is.na(dat$withV)]<-""
+    }
+
     subV.s <- split(dat$subV, nchar(dat$subV))
-    subV.s[[length(subV.s)]]<-c(subV.s[[length(subV.s)]],"''", "'")
+    subV.s[[length(subV.s)]]<-c(subV.s[[length(subV.s)]],"''", "'", "\u0361")
     stringWithStopWords <- string_vec
     stringWithStopWords <- gsub("\"", "''", stringWithStopWords)
 
-    if( EnglishDetection==TRUE){
+    if(EnglishDetection==TRUE){
       autodetected <- english_lookup(stringWithStopWords)
-      autodetected <- names(autodetected)[autodetected]
+      autodetected <- tryCatch(names(autodetected)[autodetected], error = function(e) e)
+      if(inherits(autodetected,  "error")){autodetected <-NULL}
       if(length(autodetected) == 0){autodetected <- NULL}
       stopwords <- c(stopwords, autodetected)
     }
@@ -169,6 +197,7 @@ fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, Engli
                                enc2native(char_vS), perl = TRUE), error = function(e) e)
       if(inherits(char_vC,  "error")) {warning("ERROR"); char_vC <- NULL}
       chars <- unique(c(char_vS, char_vC, char_vL))
+      chars <- chars[!grepl("\\\\U", chars)]
 
       j <- 1
       while (j<(length(chars)+1)) {
@@ -183,8 +212,8 @@ fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, Engli
           charSubst <- dat$withVS[dat$subVS%in%chars[j]]
         }
 
-        regexpr<-paste("(?<!\\@)", chars[j], sep="")
-        if(regexpr=="(?<!\\@)''"){
+        regexprg<-paste("(?<!\\@)", chars[j], sep="")
+        if(regexprg=="(?<!\\@)''"){
           if(grepl("(?<=[[:lower:]])''|((?<=\\s[[:upper:]])'')|((?<=^[[:upper:]])'')", string_vec, perl=TRUE)){
             stringWithStopWords<-
               gsub("(?<=[[:lower:]])''|((?<=\\s[[:upper:]])'')|((?<=^[[:upper:]])'')", charSubst[1], stringWithStopWords, perl=TRUE)}
@@ -193,7 +222,7 @@ fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, Engli
             stringWithStopWords<-gsub("(?<=[[:upper:]])''", toupper(charSubst[1]), stringWithStopWords, perl=TRUE)}
         }
 
-        if(regexpr=="(?<!\\@)'"){
+        if(regexprg=="(?<!\\@)'"){
           if(grepl("((?<=[[:lower:]])')|((?<=\\s[[:upper:]])')|((?<=^[[:upper:]])')", stringWithStopWords, perl=TRUE)){
             stringWithStopWords <-
               gsub("((?<=[[:lower:]])')|((?<=\\s[[:upper:]])')|((?<=^[[:upper:]])')",  charSubst[1], stringWithStopWords, perl=TRUE)}
@@ -201,9 +230,17 @@ fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, Engli
           if(grepl("(?<=[[:upper:]])'", string_vec, perl=TRUE)){
             stringWithStopWords <- gsub("(?<=[[:upper:]])'",toupper(charSubst[1]), stringWithStopWords, perl=TRUE)}
         }
-        if(regexpr!="(?<!\\@)'"|regexpr!="(?<!\\@)''"){
-          stringWithStopWords <- gsub(regexpr,charSubst[1], stringWithStopWords, perl=TRUE)
+        if(regexprg!="(?<!\\@)'"|regexprg!="(?<!\\@)''"){
+          if(grepl("(?<=\\\\u)\\w{4}", regexprg, perl=TRUE)){
+            regexprg<-paste("(?<!\\@)",
+                            "<U\\+",regmatches(regexprg, gregexpr("(?<=\\\\u)\\w{4}", regexprg, perl=TRUE)),">", sep="")
+
+            stringWithStopWords <- gsub(regexprg, charSubst[1], stringWithStopWords, perl=TRUE)
+          }else{
+          stringWithStopWords <- gsub(regexprg, charSubst[1], stringWithStopWords, perl=TRUE)
+          }
         }
+
         j = j + 1
       }
     }
@@ -215,8 +252,8 @@ fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, Engli
     }
     return(stringWithStopWords)}
 
-  if( EnglishDetection){
-    dicE <- read.table(system.file("english.txt", package="HooverArchives"),
+   if(EnglishDetection){
+     dicE <- read.table(system.file("english.txt", package="HooverArchives"),
                        header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)[,1]
     if(!is.null(EnglishLength)){
       dicE<-dicE[nchar(dicE)>=EnglishLength]
@@ -224,51 +261,52 @@ fromLATtoCYR<-function(mdat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, Engli
   }
 
   if (is.character(mdat) & length(mdat)==1){
-    if (LARU){
-      transLARU.vector <- translit(trv, mdat,  EnglishDetection, SensitivityThreshold, RussianCorrection)
+    if (LAOR){
+
+      transLAOR.vector <- translit(trv, mdat,  EnglishDetection, SensitivityThreshold, RussianCorrection)
     }
 
-    if (LARU & RURU){
-      transRURU.vector <- translit(rrv, transLARU.vector,  EnglishDetection = FALSE, SensitivityThreshold, RussianCorrection)
+    if (LAOR & OROR){
+      transOROR.vector <- translit(rrv, transLAOR.vector,  EnglishDetection = FALSE, SensitivityThreshold, RussianCorrection)
     }
 
-    if (RURU & isFALSE(LARU)){
-      transRURU.vector <- translit(rrv, mdat,  EnglishDetection = FALSE, SensitivityThreshold, RussianCorrection)
+    if (OROR & isFALSE(LAOR)){
+      transOROR.vector <- translit(rrv, mdat,  EnglishDetection = FALSE, SensitivityThreshold, RussianCorrection)
     }
   }
 
   if (is.character(mdat) & length(mdat) > 1){
-    if (LARU){
-      transLARU.list <- lapply(1:length(mdat), function(iter) {
+    if (LAOR){
+      transLAOR.list <- lapply(1:length(mdat), function(iter) {
         translit(trv, mdat[iter],  EnglishDetection, SensitivityThreshold, RussianCorrection)
       })
-      transLARU.vector <- unlist(transLARU.list)
+      transLAOR.vector <- unlist(transLAOR.list)
     }
 
-    if (RURU & LARU){
-      transRURU.list <- lapply(1:length(mdat), function(iter) {
-        translit(rrv, transLARU.vector[iter],  EnglishDetection=FALSE, SensitivityThreshold, RussianCorrection)
+    if (OROR & LAOR){
+      transOROR.list <- lapply(1:length(mdat), function(iter) {
+        translit(rrv, transLAOR.vector[iter],  EnglishDetection=FALSE, SensitivityThreshold, RussianCorrection)
       })
-      transRURU.vector <- unlist(transRURU.list)
+      transOROR.vector <- unlist(transOROR.list)
     }
 
-    if (RURU & isFALSE(LARU)){
+    if (OROR & isFALSE(LAOR)){
 
-      transRURU.list <- lapply(1:length(mdat), function(iter) {
+      transOROR.list <- lapply(1:length(mdat), function(iter) {
         translit(rrv, mdat[iter],  EnglishDetection=FALSE, SensitivityThreshold, RussianCorrection)
       })
 
-      transRURU.vector <- unlist(transRURU.list)
+      transOROR.vector <- unlist(transOROR.list)
     }
   }
 
-  if(isFALSE(RURU) & isFALSE(LARU)){
+  if(isFALSE(OROR) & isFALSE(LAOR)){
     result <- mdat
   }else{
-    if(RURU){
-      result <- transRURU.vector
+    if(OROR){
+      result <- transOROR.vector
     }else{
-      result <- transLARU.vector
+      result <- transLAOR.vector
     }
   }
 

@@ -6,8 +6,9 @@
 \usage{
 fromLATtoCYR(
   mdat,
-  LARU = TRUE,
-  RURU = FALSE,
+  tolanguage = "Russian",
+  LAOR = TRUE,
+  OROR = FALSE,
   EnglishDetection = TRUE,
   EnglishLength = NULL,
   RussianCorrection = FALSE,
@@ -17,9 +18,11 @@ fromLATtoCYR(
 \arguments{
 \item{mdat}{character vector to be back-transliterated to Cyrillic.}
 
-\item{LARU}{rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are listed in the file "transliterationLARU.csv").}
+\item{tolanguage}{language the text needs to be converted to ("Russian" by default)}
 
-\item{RURU}{rules to correct transliterated original Cyrillic (the rules are listed in the file "transliterationRURU.csv").}
+\item{LAOR}{rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are listed in the file "transliterationLAOR.csv").}
+
+\item{OROR}{rules to correct transliterated original Cyrillic (the rules are listed in the file "transliterationOROR.csv").}
 
 \item{EnglishDetection}{if set to TRUE, the script avoids transliteration of words found in the English vocabulary (file: english.txt). If set to FALSE, only user defined stop words are used (file: stopwordsfile.csv).}
 
@@ -38,9 +41,17 @@ This function helps to convert transliterated Cyrillic to original Cyrillic.
 \examples{
 library(HooverArchives)
 
+# conversion to Russian
 dat<-c("Mezhdunarodnaia gazeta. Gl. redaktor: Iu. Zarechkin. Moscow, Russia. Semiweekly. 199?",
 "DEN' UCHITELIA komissiia po obrazovaniiu ob''edineniia Iabloko",
 "III-ii RIM vestnik Rossiiskogo patrioticheskogo dvizheniia. Redaktory: M. Artem'ev, V. Rugich. Moscow, Russia.")
 
-converteddata <- fromLATtoCYR(dat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, EnglishLength=4)
+converteddata_ru <- fromLATtoCYR(dat, LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE, EnglishLength=4)
+
+
+# conversion to Ukrainian
+dat<-read.csv(system.file("Ukraine_microform.csv", package="HooverArchives"),
+                     sep=";", encoding = "UTF-8", stringsAsFactors = FALSE)
+
+converteddata_uk <- fromLATtoCYR(dat$FIELD.245, tolanguage="Ukrainian")
 }

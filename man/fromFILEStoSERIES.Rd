@@ -39,7 +39,7 @@ fromFILEStoSERIES(
 \item{...}{other parameters}
 }
 \value{
-Returns the vector of standardized and corrected dates.
+Returns altered dataframe.
 }
 \description{
 This function helps to organize the Belgium data by adding extra "Series" row and reformatting data in a proper format.

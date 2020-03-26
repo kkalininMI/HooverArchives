@@ -17,7 +17,7 @@ fromSERIEStoFILES(dat = NULL, issueDates = NULL, locale = "English")
 Returns the dataframe with the dataframe.
 }
 \description{
-This function helps to obtain "Files" variable by splitting the issueDates into separate years
+This function helps to obtain "Files" variable by splitting the issueDates into separate years.
 }
 \examples{
 library(HooverArchives)
