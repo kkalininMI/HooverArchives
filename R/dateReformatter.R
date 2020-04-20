@@ -112,7 +112,7 @@ dateReformatter<-function(datV){
       vector.s.year<-gsub("\\s+-\\s+", "-", vector.s.year)
       vector.s.year<-gsub("[[:punct:][:blank:]]+$", "", vector.s.year, perl=TRUE)
       vector_combined<-paste(paste(vector.year, vector.s.year, sep=":"), collapse=" ")
-      vector_combined<-gsub("(,\\s*$)|((?<=.)$)|(\\s*$)", ";", vector_combined, perl=TRUE)
+      vector_combined<-gsub("(,\\s*$)|((?<=.)$)|(\\s*$)", "", vector_combined, perl=TRUE)
       vector_combined<-gsub("(\\s(?=\\d{4}:))", "; ", vector_combined, perl=TRUE)
       vector_combined<-gsub("(:;)|(,;)", ";", vector_combined, perl=TRUE)
       vector_combined<-gsub("(^:)|(\n)", "", vector_combined, perl=TRUE)
