@@ -51,4 +51,6 @@ mergeData <-function(dat1, dat2, indexed_data){
   dat1$index <- indexed_data[[1]]
   dat2$index <- indexed_data[[2]]
   merged_data <- merge(dat1, dat2, by="index", all=TRUE)
+  merged_data$index <- gsub("^\\s+", "", merged_data$index)
+  merged_data <- merged_data[!is.na(merged_data$index),]
   return(merged_data)}

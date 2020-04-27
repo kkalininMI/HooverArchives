@@ -11,9 +11,13 @@ fromFILEStoSERIES(
   series_scope_note = NULL,
   series_date_range = NULL,
   scope_and_content = NULL,
-  problems_notes = NULL,
   box_barcode = NULL,
   top_container = NULL,
+  processing_information = NULL,
+  lang_encoding = "English",
+  add_articles = NULL,
+  order_by_latin = TRUE,
+  remove_special_characters = TRUE,
   ...
 )
 }
@@ -30,11 +34,19 @@ fromFILEStoSERIES(
 
 \item{scope_and_content}{variable name for "Scope and content"}
 
-\item{problems_notes}{variable name for "Problems/Notes"}
-
 \item{box_barcode}{variable name for "Box Barcode"}
 
 \item{top_container}{variable name for "Top container"}
+
+\item{processing_information}{variable name for "Processing information"}
+
+\item{lang_encoding}{sets system's locale to specific language (by default, "English")}
+
+\item{add_articles}{vector of extra articles to be excluded from alphabetical ordering}
+
+\item{order_by_latin}{order variable by only latin characters (TRUE, by default)}
+
+\item{remove_special_characters}{remove special characters, i.e. horizontal brackets (TRUE, by default)}
 
 \item{...}{other parameters}
 }
@@ -45,6 +57,7 @@ Returns altered dataframe.
 This function helps to organize the Belgium data by adding extra "Series" row and reformatting data in a proper format.
 }
 \examples{
+
 library(HooverArchives)
 library(readxl)
 library(xlsx)

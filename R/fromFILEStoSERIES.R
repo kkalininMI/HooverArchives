@@ -6,9 +6,13 @@
 #' @param series_scope_note variable name for "Series scope note"
 #' @param series_date_range variable name for "Hoover date range"
 #' @param scope_and_content variable name for "Scope and content"
-#' @param problems_notes variable name for "Problems/Notes"
 #' @param box_barcode variable name for "Box Barcode"
 #' @param top_container variable name for "Top container"
+#' @param processing_information variable name for "Processing information"
+#' @param lang_encoding sets system's locale to specific language (by default, "English")
+#' @param add_articles vector of extra articles to be excluded from alphabetical ordering
+#' @param order_by_latin order variable by only latin characters (TRUE, by default)
+#' @param remove_special_characters remove special characters, i.e. horizontal brackets (TRUE, by default)
 #' @param ... other parameters
 #' @export
 #' @importFrom stringdist stringdist
@@ -17,6 +21,7 @@
 #' @import xlsx
 #' @return Returns altered dataframe.
 #' @examples
+#'
 #' library(HooverArchives)
 #' library(readxl)
 #' library(xlsx)
@@ -62,16 +67,32 @@ fromFILEStoSERIES<-function(dat=NULL,
                             series_scope_note=NULL,
                             series_date_range=NULL,
                             scope_and_content=NULL,
-                            problems_notes=NULL,
                             box_barcode=NULL,
                             top_container=NULL,
+                            processing_information=NULL,
+                            lang_encoding="English",
+                            add_articles=NULL,
+                            order_by_latin=TRUE,
+                            remove_special_characters=TRUE,
                             ...){
 
-  dat[]<-lapply(dat, as.character)
+  dat[] <- lapply(dat, as.character)
+
+  Sys.setlocale('LC_ALL', lang_encoding)
+
+  if(isTRUE(remove_special_characters)){
+    remove_sc = "\U00fe20|\U00fe21|\U00361"
+    remove_sc<-paste(remove_special_characters, remove_sc, collapse="|")
+    remove_sc<-gsub("^\\s+","", remove_sc)}
+
+  dat <- as.data.frame(apply(dat, 2, function(x) gsub(remove_sc, "", x, perl=TRUE)), stringsAsFactors = FALSE)
+  dat[] <- lapply(dat, as.character)
+
   cNames <- colnames(dat)
   series_titleV <- dat[,cNames%in%series_title]
   series_scope_noteV <- dat[,cNames%in%series_scope_note]
   series_date_rangeV <- dat[,cNames%in%series_date_range]
+  processing_informationV <- dat[,cNames%in%processing_information]
   filesV <- dat[,cNames%in%files]
 
   k=1
@@ -81,12 +102,11 @@ fromFILEStoSERIES<-function(dat=NULL,
   dat$Title <- NA
   dat$'Hierarchical Relationship' <- NA
   dat$'Description Level' <- NA
+
   superdat <- data.frame(matrix(NA, dim(dat)[1]*2, dim(dat)[2]))
   colnames(superdat)<-colnames(dat)
 
-  #reordering
-  index_order<-paste(series_titleV, dat$TitleF, series_date_rangeV, sep=":")
-  dat<-dat[order(index_order),]
+  #browser()
 
   gr=1
   for (i in 1:length(unique(dat$TitleF))){
@@ -124,7 +144,33 @@ fromFILEStoSERIES<-function(dat=NULL,
   }
 
   superdat <- superdat[!is.na(superdat$Group),]
-  superdat <- superdat %>% arrange(Group, Hierarchical_Relationship, Title, groupby=Group)
+
+  #reordering
+  remove_articles<-function(x){
+    Caps <- function(s) {
+      unique(c(s,
+               paste(toupper(substring(s, 1,1)), substring(s, 2), sep=""),
+               paste(toupper(s), sep="")))
+    }
+    articles<-Caps(c("l'", "l", "le", "la", "les", "un", "une", "des", "du", "de", "la", "der", "die", "das", "ein", "eine", "het", add_articles))
+    x[is.na(x)] <- "NA"
+    first <- regmatches(x, regexpr("(\\w+)", x))
+    x[first %in% articles]<-gsub("(^\\w+\\s+)|([[:alpha:]])'", "", x[first%in%articles])
+    x <- gsub("^\\s+", "", x)
+    return(x)}
+
+  if(order_by_latin){
+    rem_nat_char_Title <- gsub("[^[:alnum:]]", "", remove_articles(superdat$Title))
+  }else{
+    superdat$indexN <- remove_articles(superdat$Title)
+  }
+
+  superdat$indexN <- rem_nat_char_Title
+  Group_prior <- unique(superdat$Group)
+  Group_new <- 1:max(Group_prior)
+  superdat$Group <- sapply(superdat$Group, function(x)  Group_new[Group_prior%in%x])
+  superdat <- arrange(superdat, Group, Hierarchical_Relationship, indexN, groupby=Group)
+
 
   #g	The scope and contents notes CHANGES:
   if(!is.null(scope_and_content)){
@@ -132,25 +178,18 @@ fromFILEStoSERIES<-function(dat=NULL,
     gsub("many numbers missing", "many issues missing", superdat[,gsub("\\.", "_", scope_and_content)])
   }
 
-  #h
-  if(!is.null(box_barcode) & !is.null(problems_notes)){
-    superdat$Processing_Information<-
-      paste(superdat[,gsub("\\.|\\s+", "_", box_barcode)], superdat[,gsub("\\.|\\s+", "_", problems_notes)], sep="; ")
-    superdat$Processing_Information<-gsub("(^; )|(; $)", "", superdat$Processing_Information)
-    superdat$Processing_Information<-gsub("NA;*\\s*NA", "", superdat$Processing_Information)}
 
   if(!is.null(scope_and_content)){
   superdat[,gsub("\\.|\\s+", "_", scope_and_content)]<-
     gsub("\\s+[Xx]\\s+", "", superdat[,gsub("\\.", "_", scope_and_content)])
   }
 
-  #j
-  #concatenation
-  superdat$Title[superdat$Hierarchical_Relationship==1] <- paste(superdat$Title[superdat$Hierarchical_Relationship==1],
-                                                                 "This is being done for larger countries (countries with lots of titles).", sep=" ")
   superdat[is.na(superdat)] <- ""
 
   for (name in colnames(superdat[,sapply(superdat, is.character)])){
     Encoding(superdat[[name]]) <- "UTF-8"}
+
+  #remove rows with NAs in Title
+  superdat <- superdat[!grepl("(^NA\\.*$)|(^NA\\.)", superdat$Title),]
 
 return(superdat)}

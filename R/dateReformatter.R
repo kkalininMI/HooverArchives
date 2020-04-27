@@ -127,6 +127,7 @@ dateReformatter<-function(datV){
 
   ##Main Body
   #a
+  datV <- gsub("^\\s+", "",  datV, perl=TRUE)
   datV <- gsub("\\s*-\\s*", "-",  datV, perl=TRUE)
 
   #b
