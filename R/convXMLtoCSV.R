@@ -9,7 +9,7 @@
 # @return Returns the dataframe object with rows (observations matching item/collection nodes) and columns (item nodes).
 
 
-convXMLtoCSV <- function(filename,  item_nodes, collection_nodes){
+convXMLtoCSV <- function(filename=NULL,  item_nodes=NULL, collection_nodes=NULL){
 
   nodeExtract <- function(data, extract_formula, path=FALSE,  types){
     if(extract_formula=="primarynode"){node_attr <- xml_attrs(data)}else{

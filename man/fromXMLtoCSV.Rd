@@ -4,7 +4,13 @@
 \alias{fromXMLtoCSV}
 \title{XML to CSV conversion function}
 \usage{
-fromXMLtoCSV(filename, item_nodes, collection_nodes, excludeFiles = NULL, ...)
+fromXMLtoCSV(
+  filename = NULL,
+  item_nodes = NULL,
+  collection_nodes = NULL,
+  excludeFiles = NULL,
+  ...
+)
 }
 \arguments{
 \item{filename}{name of XML file or vector of XML filenames.}

@@ -5,7 +5,7 @@
 \title{Latin to Cyrillic conversion function}
 \usage{
 fromLATtoCYR(
-  mdat,
+  mdat = NULL,
   tolanguage = "Russian",
   LAOR = TRUE,
   OROR = FALSE,

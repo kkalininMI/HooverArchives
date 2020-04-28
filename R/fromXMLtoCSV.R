@@ -24,7 +24,7 @@
 #' filedata <- fromXMLtoCSV(system.file("rusdata.xml", package="HooverArchives"),
 #'                          item_nodes, collection_nodes)
 
-fromXMLtoCSV <- function(filename, item_nodes, collection_nodes, excludeFiles=NULL, ...){
+fromXMLtoCSV <- function(filename=NULL, item_nodes=NULL, collection_nodes=NULL, excludeFiles=NULL, ...){
 
   if (is.vector(filename) & length(filename)>1){
 

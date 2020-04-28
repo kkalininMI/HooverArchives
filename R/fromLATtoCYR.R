@@ -27,13 +27,13 @@
 #' converteddata_ru <- fromLATtoCYR(dat, LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE, EnglishLength=4)
 #'
 #'
-#'# conversion to Ukrainian
+#' # conversion to Ukrainian
 #'dat<-read.csv(system.file("Ukraine_microform.csv", package="HooverArchives"),
 #'                      sep=";", encoding = "UTF-8", stringsAsFactors = FALSE)
 #'
-#' converteddata_uk <- fromLATtoCYR(dat$FIELD.245, tolanguage="Ukrainian")
+#'converteddata_uk <- fromLATtoCYR(dat$FIELD.245, tolanguage="Ukrainian")
 
-fromLATtoCYR<-function(mdat, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE,
+fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE,
                        EnglishLength=NULL, RussianCorrection=FALSE, SensitivityThreshold = 0.1){
 
   #Global settings

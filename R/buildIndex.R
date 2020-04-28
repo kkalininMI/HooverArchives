@@ -2,9 +2,9 @@
 #' @description This function helps to index data files or separate spreadsheets for subsequent merging.
 #' @param x index 1
 #' @param y index 2
-#' @param index_simplify parameter eliminating major inconsistencies between indices
-#' @param index_hashing converting index to hash index
-#' @param fuzzy_matching enable fuzzy matching between the indices
+#' @param index_simplify parameter eliminating major inconsistencies between indices (FALSE by default)
+#' @param index_hashing converting index to hash index (FALSE by default)
+#' @param fuzzy_matching enable fuzzy matching between the indices (FALSE by default). If TRUE, the window pops up: enter 0 in the third column for correctly fuzzy matched pair, and 1 otherwise. If all pairs are correctly matched, close the window without entering any information into the third column.
 #' @param ... other parameters
 #' @export
 #' @importFrom stringdist stringdist
@@ -13,19 +13,22 @@
 #' @import digest
 #' @return Returns the list of "matched" indices for both data frames.
 #' @examples
+#'
 #' library(HooverArchives)
 #' library(readxl)
 #' library(xlsx)
 #'
 #' #Load data and create indices
 #'
-#' dat2.1<-read.xlsx(system.file("belgiumdata.xlsx", package="HooverArchives"), sheetIndex=1, header=FALSE, encoding = "utf-8")
+#' #Open Sheet 1
+#' dat2.1<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), sheetIndex=1, header=FALSE, encoding = "utf-8")
 #' dat2.1[]<-lapply(dat2.1, as.character)
 #' colnames(dat2.1)<-as.character(dat2.1[3,])
 #' dat2.1<-dat2.1[-(1:3),-c(1,14)];
 #' dat2.1$indexW<-dat2.1$`Item title`
 #'
-#' dat2.2<-read.xlsx(system.file("belgiumdata.xlsx", package="HooverArchives"), sheetIndex=2, header=TRUE, encoding = "utf-8")
+#' #Open Sheet 2
+#' dat2.2<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), sheetIndex=2, header=TRUE, encoding = "utf-8")
 #' dat2.2$indexW<- dat2.2$`Packet.Catalog.Title`
 #'
 #' #Merge two dataframe using BuildIndex and Merge_data functions
@@ -33,28 +36,29 @@
 #'                           index_simplify=TRUE,
 #'                           fuzzy_matching=TRUE,
 #'                           index_hashing=FALSE)
-#'
 #' mdat<-mergeData(dat2.1,dat2.2, index_matches)
 #'
 #' #Use fromFILEStoSERIES() to add the Series row
-#'  coverted.dat<-fromFILEStoSERIES(dat=mdat,
-#'                                  series_title="Series title",
-#'                                  files="index",
-#'                                  series_scope_note="Series scope note",
-#'                                  series_date_range="Hoover date range",
-#'                                  scope_and_content="Scope.and.content",
-#'                                  problems_notes="Series scope note",
-#'                                  box_barcode="Box_Barcode",
-#'                                  top_container="Final.Box..")
-#'
-#'  datHarvard<-subset(coverted.dat, select=c("Group", "Title", "Hierarchical_Relationship",	"Processing_Information",
-#'                                            "Description_Level",	"Date", "Top_Container_[indicator]", "Box_Barcode",
-#'                                            "Scope_and_content"))
+#' coverted.dat<-fromFILEStoSERIES(dat=mdat,
+#'                                series_title="Series title",
+#'                                files="index",
+#'                                series_scope_note="Series scope note",
+#'                                series_date_range="Hoover date range",
+#'                                scope_and_content="Scope.and.content",
+#'                                problems_notes="Series scope note",
+#'                                box_barcode="Box_Barcode",
+#'                                top_container="Final.Box..")
+#' coverted.dat$Date<-dateReformatter(coverted.dat$Date)
+#' convertedtoArchivesSpace<-subset(coverted.dat, select=c("Title", "Hierarchical_Relationship",	"Processing_Information",
+#'                                           "Ckey_x", "Ckey_y", "Description_Level",	"Date", "Top_Container_[indicator]",
+#'                                           "Box_Barcode", "Scope_and_content"), value=TRUE)
 #' #Save file in xlsx to preserve diacritic characters
-#' #write.xlsx(datHarvard, "convertedtoHarvardStyle.xlsx", sheetName = "HarvardStyle", col.names = TRUE)
+#' #write.xlsx(convertedtoArchivesSpace, "convertedtoArchivesSpace.xlsx", sheetName = "ArchivesSpace", col.names = TRUE)
+
 
 #Matching function for two dataframes
-buildIndex<-function(x,y, index_simplify=FALSE, index_hashing=FALSE, fuzzy_matching=FALSE, ...){
+buildIndex<-function(x=NULL,y=NULL, index_simplify=FALSE, index_hashing=FALSE, fuzzy_matching=FALSE, ...){
+
   Index_conv_function <- function(var){
     s1 <- paste(gsub(",.*","", var), ")", sep="");
     s2 <- gsub("\\)+",")", s1)

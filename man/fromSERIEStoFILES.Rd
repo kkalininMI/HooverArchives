@@ -9,9 +9,9 @@ fromSERIEStoFILES(dat = NULL, issueDates = NULL, locale = "English")
 \arguments{
 \item{dat}{original dataframe.}
 
-\item{issueDates}{Variables containing information}
+\item{issueDates}{Variables containing information.}
 
-\item{locale}{system's locale [locale = English]}
+\item{locale}{system's locale (English by default).}
 }
 \value{
 Returns the dataframe with the dataframe.

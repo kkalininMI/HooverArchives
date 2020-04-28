@@ -1,6 +1,6 @@
 #' @title Belgium Data
 #' @description Belgium data, Hoover Institution Library & Archives, USA
-#' @name belgiumdata
+#' @name BelgiumData
 #' @docType data
 #' @format XLSX
 #' @keywords  Belgium data

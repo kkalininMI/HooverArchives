@@ -49,29 +49,32 @@ This package implements various metadata processing tasks performed at the Hoove
 
  Example 
  
-    library(HooverArchives)
-    library(readxl)
-    library(xlsx)
+     library(HooverArchives)
+     library(readxl)
+     library(xlsx)
     
-    #Load data and create indices
-    dat2.1<-read.xlsx(system.file("belgiumdata.xlsx", package="HooverArchives"), sheetIndex=1, header=FALSE, encoding = "utf-8")
-    dat2.1[]<-lapply(dat2.1, as.character)
-    colnames(dat2.1)<-as.character(dat2.1[3,])
-    dat2.1<-dat2.1[-(1:3),-c(1,14)];
-    dat2.1$indexW<-dat2.1$`Item title`
+     #Load data and create indices
+     
+     #Open Sheet 1
+     dat2.1<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), sheetIndex=1, header=FALSE, encoding = "utf-8")
+     dat2.1[]<-lapply(dat2.1, as.character)
+     colnames(dat2.1)<-as.character(dat2.1[3,])
+     dat2.1<-dat2.1[-(1:3),-c(1,14)];
+     dat2.1$indexW<-dat2.1$`Item title`
     
-    dat2.2<-read.xlsx(system.file("belgiumdata.xlsx", package="HooverArchives"), sheetIndex=2, header=TRUE, encoding = "utf-8")
-    dat2.2$indexW<- dat2.2$`Packet.Catalog.Title`
+     #Open Sheet 2
+     dat2.2<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), sheetIndex=2, header=TRUE, encoding = "utf-8")
+     dat2.2$indexW<- dat2.2$`Packet.Catalog.Title`
     
-    #Merge two dataframe using BuildIndex and Merge_data functions
-    index_matches<-buildIndex(dat2.1$indexW,dat2.2$indexW,
-                              index_simplify=TRUE,
-                              fuzzy_matching=TRUE,
-                              index_hashing=FALSE)
-    mdat<-mergeData(dat2.1,dat2.2, index_matches)
+     #Merge two dataframe using BuildIndex and Merge_data functions
+     index_matches<-buildIndex(dat2.1$indexW,dat2.2$indexW,
+                               index_simplify=TRUE,
+                               fuzzy_matching=TRUE,
+                               index_hashing=FALSE)
+     mdat<-mergeData(dat2.1,dat2.2, index_matches)
     
-    #Use fromFILEStoSERIES() to add the Series row
-    coverted.dat<-fromFILEStoSERIES(dat=mdat,
+     #Use fromFILEStoSERIES() to add the Series row
+     coverted.dat<-fromFILEStoSERIES(dat=mdat,
                                     series_title="Series title",
                                     files="index",
                                     series_scope_note="Series scope note",
@@ -80,13 +83,12 @@ This package implements various metadata processing tasks performed at the Hoove
                                     problems_notes="Series scope note",
                                     box_barcode="Box_Barcode",
                                     top_container="Final.Box..")
-    
-    datHarvard<-subset(coverted.dat, select=c("Group", "Title", "Hierarchical_Relationship",	
-                                              "Processing_Information", "Description_Level",	
-                                              "Date", "Top_Container_[indicator]", "Box_Barcode",
-                                              "Scope_and_content"))
-    #Save file in xlsx to preserve diacritic characters
-    #write.xlsx(datHarvard, "convertedtoHarvardStyle.xlsx", sheetName = "HarvardStyle", col.names = TRUE)
+     coverted.dat$Date<-dateReformatter(coverted.dat$Date)
+     datHarvard<-subset(coverted.dat, select=c("Title", "Hierarchical_Relationship",	"Processing_Information", 
+                                               "Ckey_x", "Ckey_y", "Description_Level",	"Date", "Top_Container_[indicator]",
+                                               "Box_Barcode", "Scope_and_content"), value=TRUE)
+     #Save file in xlsx to preserve diacritic characters
+     #write.xlsx(datHarvard, "convertedtoArchivesSpace.xlsx", sheetName = "ArchivesSpace", col.names = TRUE)
 
 
 
