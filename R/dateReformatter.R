@@ -30,6 +30,8 @@ dateReformatter<-function(datV){
 
     for(i in 1:12){mon<-gsub(full.month[i], short.month[i], mon)}
 
+    for(i in 1:12){mon<-gsub(paste(short.month[i],"\\.", sep=""), paste(short.month[i]," ", sep=""), mon)}
+
     return(mon)}
 
   dateref<-function(refd, ...){
@@ -110,7 +112,7 @@ dateReformatter<-function(datV){
       vector.s.year<-gsub(";(?!\\s*$) ", ", ", vector.s.year, perl=TRUE)
       vector.s.year<-gsub(",\\s*", ", ", vector.s.year)
       vector.s.year<-gsub("\\s+-\\s+", "-", vector.s.year)
-      vector.s.year<-gsub("[[:punct:][:blank:]]+$", "", vector.s.year, perl=TRUE)
+      vector.s.year<-gsub("(?!(')|(\\))|(\\})|(\\])|(\\>))[[:punct:][:blank:]]+$", "", vector.s.year, perl=TRUE)
       vector_combined<-paste(paste(vector.year, vector.s.year, sep=":"), collapse=" ")
       vector_combined<-gsub("(,\\s*$)|((?<=.)$)|(\\s*$)", "", vector_combined, perl=TRUE)
       vector_combined<-gsub("(\\s(?=\\d{4}:))", "; ", vector_combined, perl=TRUE)
