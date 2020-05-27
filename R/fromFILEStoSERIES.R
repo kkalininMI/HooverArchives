@@ -11,8 +11,8 @@
 #' @param processing_information variable name for "Processing information"
 #' @param lang_encoding sets system's locale to specific language (by default "English")
 #' @param add_articles vector of extra articles to be excluded from alphabetical ordering
-#' @param order_by_latin order variable by only latin characters (TRUE by default)
 #' @param remove_special_characters remove special characters, i.e. horizontal brackets (TRUE by default)
+#' @param alphabetizewithinbrackets by a string within square brackets (FALSE by default)
 #' @param ... other parameters
 #' @export
 #' @importFrom stringdist stringdist
@@ -75,8 +75,8 @@ fromFILEStoSERIES<-function(dat=NULL,
                             processing_information=NULL,
                             lang_encoding="English",
                             add_articles=NULL,
-                            order_by_latin=TRUE,
                             remove_special_characters=TRUE,
+                            alphabetizewithinbrackets=FALSE,
                             ...){
 
   dat[] <- lapply(dat, as.character)
@@ -108,8 +108,6 @@ fromFILEStoSERIES<-function(dat=NULL,
 
   superdat <- data.frame(matrix(NA, dim(dat)[1]*2, dim(dat)[2]))
   colnames(superdat)<-colnames(dat)
-
-  #browser()
 
   gr=1
   for (i in 1:length(unique(dat$TitleF))){
@@ -162,18 +160,20 @@ fromFILEStoSERIES<-function(dat=NULL,
     x <- gsub("^\\s+", "", x)
     return(x)}
 
-  if(order_by_latin){
-    rem_nat_char_Title <- gsub("[^[:alnum:]]", "", remove_articles(superdat$Title))
+  if(alphabetizewithinbrackets){
+    rem_nat_char_Title <- gsub("[[:punct:]]| ", "", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
+    superdat$indexN <- remove_articles(rem_nat_char_Title)
   }else{
     superdat$indexN <- remove_articles(superdat$Title)
+    superdat$indexN <- gsub("\u00B4", "", superdat$indexN)
   }
 
-  superdat$indexN <- rem_nat_char_Title
-  Group_prior <- unique(superdat$Group)
-  Group_new <- 1:max(Group_prior)
-  superdat$Group <- sapply(superdat$Group, function(x)  Group_new[Group_prior%in%x])
-  superdat <- arrange(superdat, Group, Hierarchical_Relationship, indexN, groupby=Group)
-
+  index_frame<-superdat%>%select(Hierarchical_Relationship, Group, indexN)%>%
+    filter(Hierarchical_Relationship==1)%>%
+    arrange(indexN)%>%
+    mutate(GroupN = 1:n())
+  superdat$GroupN<-sapply(superdat$Group, function(x)  index_frame$GroupN[index_frame$Group%in%x])
+  superdat <- arrange(superdat, GroupN, Hierarchical_Relationship, indexN, Date)
 
   #g	The scope and contents notes CHANGES:
   if(!is.null(scope_and_content)){

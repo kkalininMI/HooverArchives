@@ -16,8 +16,8 @@ fromFILEStoSERIES(
   processing_information = NULL,
   lang_encoding = "English",
   add_articles = NULL,
-  order_by_latin = TRUE,
   remove_special_characters = TRUE,
+  alphabetizewithinbrackets = FALSE,
   ...
 )
 }
@@ -44,9 +44,9 @@ fromFILEStoSERIES(
 
 \item{add_articles}{vector of extra articles to be excluded from alphabetical ordering}
 
-\item{order_by_latin}{order variable by only latin characters (TRUE by default)}
-
 \item{remove_special_characters}{remove special characters, i.e. horizontal brackets (TRUE by default)}
+
+\item{alphabetizewithinbrackets}{by a string within square brackets (FALSE by default)}
 
 \item{...}{other parameters}
 }

@@ -24,9 +24,18 @@ dateReformatter<-function(datV){
 
   convert_month <- function(mon, short.month){
 
-    full.month<-c("January", "February", "March", "April",
-                  "May", "June", "July","August", "September",
-                  "October", "November", "December")
+    full.month<-c("January|January|Januar|Janua|Janu",
+                  "February|Februar|Februa|Febru|Febr",
+                  "March|Marc",
+                  "April|Apri",
+                  "May",
+                  "June",
+                  "July",
+                  "August|Augus|Augu",
+                  "September|Septembe|Septemb|Septem|Septe|Sept",
+                  "October|Octobe|Octob|Octob|Octo",
+                  "November|Novembe|Novemb|Novem|Nove",
+                  "December|Decembe|Decemb|Decem|Dece")
 
     for(i in 1:12){mon<-gsub(full.month[i], short.month[i], mon)}
 
@@ -88,7 +97,7 @@ dateReformatter<-function(datV){
 
   extra_reformat<-function(refd){
     refdV<-vector()
-
+    #browser()
     for (i in 1:length(refd)){
       date_item <-refd[i]
       vector.year<-gsub(":|;", "",
@@ -141,8 +150,22 @@ dateReformatter<-function(datV){
   datV <- gsub("(,(?!\\s+))|,\\s+", ", ",  datV, perl=TRUE)
 
   #e, f
-  datV_reformat <- date_reformat(datV, short.month)
+  datV <- date_reformat(datV, short.month)
 
-  result <- extra_reformat(datV_reformat)
+  #extra
+  datV <- extra_reformat(datV)
+
+  #hyphens
+  hyphens<-c("-+", "\u002D", "\u05BE", "\u1806","\u2010", "\u2011", "\u2012", "\u2013", "\u2014", "\u2015", "\u207B", "\u208B", "\u2212", "\uFE58", "\uFE63", "\uFF0D")
+  hyphens<-paste(hyphens, collapse="|")
+  datV <- gsub(hyphens, "-",  datV, perl=TRUE)
+
+  #replace all semicolons with commas
+  datV <- gsub(";", ",",  datV, perl=TRUE)
+
+  #remove all NAs
+  datV[is.na(datV)]<-""
+
+  result<-datV
 
   return(result)}
