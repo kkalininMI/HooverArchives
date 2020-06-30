@@ -7,6 +7,7 @@
 #' @param series_date_range variable name for "Hoover date range"
 #' @param scope_and_content variable name for "Scope and content"
 #' @param box_barcode variable name for "Box Barcode"
+#' @param ckey variable name for "Ckey"
 #' @param top_container variable name for "Top container"
 #' @param processing_information variable name for "Processing information"
 #' @param lang_encoding sets system's locale to specific language (by default "English")
@@ -55,13 +56,15 @@
 #'                                scope_and_content="Scope.and.content",
 #'                                problems_notes="Series scope note",
 #'                                box_barcode="Box_Barcode",
+#'                                ckey="Ckey.x",
 #'                                top_container="Final.Box..")
 #' coverted.dat$Date<-dateReformatter(coverted.dat$Date)
 #' convertedtoArchivesSpace<-subset(coverted.dat, select=c("Title", "Hierarchical_Relationship",	"Processing_Information",
-#'                                           "Ckey_x", "Ckey_y", "Description_Level",	"Date", "Top_Container_[indicator]",
+#'                                           "CkeyV", "Description_Level",	"Date", "Top_Container_[indicator]",
 #'                                           "Box_Barcode", "Scope_and_content"), value=TRUE)
 #' #Save file in xlsx to preserve diacritic characters
 #' #write.xlsx(convertedtoArchivesSpace, "convertedtoArchivesSpace.xlsx", sheetName = "ArchivesSpace", col.names = TRUE)
+
 
 
 fromFILEStoSERIES<-function(dat=NULL,
@@ -73,6 +76,7 @@ fromFILEStoSERIES<-function(dat=NULL,
                             box_barcode=NULL,
                             top_container=NULL,
                             processing_information=NULL,
+                            ckey=NULL,
                             lang_encoding="English",
                             add_articles=NULL,
                             remove_special_characters=TRUE,
@@ -96,6 +100,7 @@ fromFILEStoSERIES<-function(dat=NULL,
   series_scope_noteV <- dat[,cNames%in%series_scope_note]
   series_date_rangeV <- dat[,cNames%in%series_date_range]
   processing_informationV <- dat[,cNames%in%processing_information]
+  CkeyV <- dat[,cNames%in%ckey]
   filesV <- dat[,cNames%in%files]
 
   k=1
@@ -105,6 +110,7 @@ fromFILEStoSERIES<-function(dat=NULL,
   dat$Title <- NA
   dat$'Hierarchical Relationship' <- NA
   dat$'Description Level' <- NA
+  dat$CkeyV<-NA
 
   superdat <- data.frame(matrix(NA, dim(dat)[1]*2, dim(dat)[2]))
   colnames(superdat)<-colnames(dat)
@@ -115,6 +121,7 @@ fromFILEStoSERIES<-function(dat=NULL,
     if(repObs>1){
       superdat[k,] <- NA
       superdat$Title[k]<-TitleS[which(dat$TitleF%in%unique(dat$TitleF)[i])[1]];
+      superdat$CkeyV[k]<-CkeyV[which(dat$TitleF%in%unique(dat$TitleF)[i])[1]];
       superdat$'Hierarchical Relationship'[k]<-1
       superdat$'Description Level'[k]<-"Series"
       superdat[(k+1):(k+repObs),] <- dat[which(dat$TitleF%in%unique(dat$TitleF)[i]),];
@@ -126,6 +133,7 @@ fromFILEStoSERIES<-function(dat=NULL,
     }else{
       superdat[k,] <- NA
       superdat$Title[k]<-TitleS[which(dat$TitleF%in%unique(dat$TitleF)[i])[1]];
+      superdat$CkeyV[k]<-CkeyV[which(dat$TitleF%in%unique(dat$TitleF)[i])[1]];
       superdat$'Hierarchical Relationship'[k]<-1
       superdat$'Description Level'[k]<-"Series"
       superdat[(k+1):(k+2),] <- dat[which(dat$TitleF%in%unique(dat$TitleF)[i]),];
@@ -137,11 +145,10 @@ fromFILEStoSERIES<-function(dat=NULL,
     }
     gr=gr+1
   }
-
   colnames(superdat)<-gsub(" |\\.", "_", colnames(dat))
 
   if(!is.null(top_container)){
-  superdat$"Top_Container_[indicator]"<- superdat[,names(superdat)%in%gsub("\\.", "_", top_container)]
+    superdat$"Top_Container_[indicator]"<- superdat[,names(superdat)%in%gsub("\\.", "_", top_container)]
   }
 
   superdat <- superdat[!is.na(superdat$Group),]
@@ -177,14 +184,14 @@ fromFILEStoSERIES<-function(dat=NULL,
 
   #g	The scope and contents notes CHANGES:
   if(!is.null(scope_and_content)){
-  superdat[,gsub("\\.|\\s+", "_", scope_and_content)]<-
-    gsub("many numbers missing", "many issues missing", superdat[,gsub("\\.", "_", scope_and_content)])
+    superdat[,gsub("\\.|\\s+", "_", scope_and_content)]<-
+      gsub("many numbers missing", "many issues missing", superdat[,gsub("\\.", "_", scope_and_content)])
   }
 
 
   if(!is.null(scope_and_content)){
-  superdat[,gsub("\\.|\\s+", "_", scope_and_content)]<-
-    gsub("\\s+[Xx]\\s+", "", superdat[,gsub("\\.", "_", scope_and_content)])
+    superdat[,gsub("\\.|\\s+", "_", scope_and_content)]<-
+      gsub("\\s+[Xx]\\s+", "", superdat[,gsub("\\.", "_", scope_and_content)])
   }
 
   superdat[is.na(superdat)] <- ""
@@ -195,4 +202,4 @@ fromFILEStoSERIES<-function(dat=NULL,
   #remove rows with NAs in Title
   superdat <- superdat[!grepl("(^NA\\.*$)|(^NA\\.)", superdat$Title),]
 
-return(superdat)}
+  return(superdat)}

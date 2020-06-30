@@ -54,10 +54,11 @@ coverted.dat<-fromFILEStoSERIES(dat=mdat,
                                scope_and_content="Scope.and.content",
                                problems_notes="Series scope note",
                                box_barcode="Box_Barcode",
+                               ckey="Ckey.x",
                                top_container="Final.Box..")
 coverted.dat$Date<-dateReformatter(coverted.dat$Date)
 convertedtoArchivesSpace<-subset(coverted.dat, select=c("Title", "Hierarchical_Relationship",	"Processing_Information",
-                                          "Ckey_x", "Ckey_y", "Description_Level",	"Date", "Top_Container_[indicator]",
+                                          "CkeyV", "Description_Level",	"Date", "Top_Container_[indicator]",
                                           "Box_Barcode", "Scope_and_content"), value=TRUE)
 #Save file in xlsx to preserve diacritic characters
 #write.xlsx(convertedtoArchivesSpace, "convertedtoArchivesSpace.xlsx", sheetName = "ArchivesSpace", col.names = TRUE)
