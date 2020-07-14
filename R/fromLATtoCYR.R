@@ -40,11 +40,11 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   Sys.setlocale("LC_ALL",locale = tolanguage)
 
   if(tolanguage=="Russian"){trvfilename="transliterationLARU.csv"; rrvfilename="transliterationRURU.csv";
-                           dicR<-read.table(system.file("russian.txt", package="HooverArchives"),
-                                             header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
-                           dicN<-read.table(system.file("russian_surnames.txt", package="HooverArchives"),
-                                             header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
-                           dicRS<-unname(unlist(dicR),unlist(dicN))}
+  dicR<-read.table(system.file("russian.txt", package="HooverArchives"),
+                   header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
+  dicN<-read.table(system.file("russian_surnames.txt", package="HooverArchives"),
+                   header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
+  dicRS<-unname(unlist(dicR),unlist(dicN))}
 
   if(tolanguage=="Ukrainian"){trvfilename="transliterationLAUK.csv"; rrvfilename=NULL}
 
@@ -62,7 +62,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
     rrv <- data.frame(apply(rrv, 2, function(y) gsub("\\_", " ", y)))
     rrv <- rrv[,-1]
     rrv[] <- lapply(rrv, as.character)
-    }
+  }
 
 
   swf <- read.csv(system.file("stopwordsfile.csv", package="HooverArchives"), encoding = "UTF-8", stringsAsFactors=FALSE)
@@ -81,7 +81,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   translit<-function(dat, string_vec,  EnglishDetection, SensitivityThreshold, RussianCorrection){
 
     english_lookup <- function(a){
-      splV <- unlist(strsplit(a," |\\."))
+      splV <- unlist(strsplit(a," |\\.|[[:punct:]]"))
       splV <- gsub("\\d+|[[:punct:]]", "", splV)
       splV <- splV[splV!=""]
       splV <- unique(splV);
@@ -179,14 +179,16 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       autodetected <- tryCatch(names(autodetected)[autodetected], error = function(e) e)
       if(inherits(autodetected,  "error")){autodetected <-NULL}
       if(length(autodetected) == 0){autodetected <- NULL}
-      stopwords <- c(stopwords, autodetected)
+      stopwords <- c(autodetected, stopwords)
     }
 
     stopWordsReplace <- stopwords_encoder(stopwords)
 
     for(i in 1:length(stopWordsReplace)){
-      stringWithStopWords <- gsub(stopwords[i],stopWordsReplace[i],stringWithStopWords)
+      stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b",
+                                         "(?!\\')", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
     }
+
     stringWithStopWords <-
       gsub("^''|((?<=[[:punct:][:space:]])+'')|''(?=[[:punct:][:space:]])|''$", "@'@'", stringWithStopWords, perl=TRUE)
 
@@ -237,7 +239,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
 
             stringWithStopWords <- gsub(regexprg, charSubst[1], stringWithStopWords, perl=TRUE)
           }else{
-          stringWithStopWords <- gsub(regexprg, charSubst[1], stringWithStopWords, perl=TRUE)
+            stringWithStopWords <- gsub(regexprg, charSubst[1], stringWithStopWords, perl=TRUE)
           }
         }
 
@@ -252,31 +254,34 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
     }
     return(stringWithStopWords)}
 
-   if(EnglishDetection){
-     dicE <- read.table(system.file("english.txt", package="HooverArchives"),
+
+
+  if(EnglishDetection){
+    dicE <- read.table(system.file("english.txt", package="HooverArchives"),
                        header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)[,1]
+    #dicE <- paste("^", dicE, sep="")
+
     if(!is.null(EnglishLength)){
       dicE<-dicE[nchar(dicE)>=EnglishLength]
     }
   }
 
   if (is.character(mdat) & length(mdat)==1){
-    if (LAOR){
-
+    if (LAOR|(isFALSE(LAOR)&isFALSE(OROR))){
       transLAOR.vector <- translit(trv, mdat,  EnglishDetection, SensitivityThreshold, RussianCorrection)
     }
 
     if (LAOR & OROR){
-      transOROR.vector <- translit(rrv, transLAOR.vector,  EnglishDetection = FALSE, SensitivityThreshold, RussianCorrection)
+      transOROR.vector <- translit(rrv, transLAOR.vector,  EnglishDetection, SensitivityThreshold, RussianCorrection)
     }
 
-    if (OROR & isFALSE(LAOR)){
-      transOROR.vector <- translit(rrv, mdat,  EnglishDetection = FALSE, SensitivityThreshold, RussianCorrection)
+    if (isFALSE(LAOR) & OROR){
+      transOROR.vector <- translit(rrv, mdat,  EnglishDetection, SensitivityThreshold, RussianCorrection)
     }
   }
 
   if (is.character(mdat) & length(mdat) > 1){
-    if (LAOR){
+    if (LAOR|(isFALSE(LAOR)&isFALSE(OROR))){
       transLAOR.list <- lapply(1:length(mdat), function(iter) {
         translit(trv, mdat[iter],  EnglishDetection, SensitivityThreshold, RussianCorrection)
       })
@@ -285,7 +290,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
 
     if (OROR & LAOR){
       transOROR.list <- lapply(1:length(mdat), function(iter) {
-        translit(rrv, transLAOR.vector[iter],  EnglishDetection=FALSE, SensitivityThreshold, RussianCorrection)
+        translit(rrv, transLAOR.vector[iter],  EnglishDetection, SensitivityThreshold, RussianCorrection)
       })
       transOROR.vector <- unlist(transOROR.list)
     }
@@ -293,7 +298,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
     if (OROR & isFALSE(LAOR)){
 
       transOROR.list <- lapply(1:length(mdat), function(iter) {
-        translit(rrv, mdat[iter],  EnglishDetection=FALSE, SensitivityThreshold, RussianCorrection)
+        translit(rrv, mdat[iter],  EnglishDetection, SensitivityThreshold, RussianCorrection)
       })
 
       transOROR.vector <- unlist(transOROR.list)
@@ -301,7 +306,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   }
 
   if(isFALSE(OROR) & isFALSE(LAOR)){
-    result <- mdat
+    result <- transLAOR.vector
   }else{
     if(OROR){
       result <- transOROR.vector
@@ -313,3 +318,5 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   result<-gsub("@", "", result)
 
   return(result)}
+
+
