@@ -46,12 +46,12 @@ dat<-c("Mezhdunarodnaia gazeta. Gl. redaktor: Iu. Zarechkin. Moscow, Russia. Sem
 "DEN' UCHITELIA komissiia po obrazovaniiu ob''edineniia Iabloko",
 "III-ii RIM vestnik Rossiiskogo patrioticheskogo dvizheniia. Redaktory: M. Artem'ev, V. Rugich. Moscow, Russia.")
 
-converteddata_ru <- fromLATtoCYR(dat, LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE, EnglishLength=4)
+converteddata_ru <- fromLATtoCYR(dat, LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE)
 
 
 # conversion to Ukrainian
 dat<-read.csv(system.file("Ukraine_microform.csv", package="HooverArchives"),
-                     sep=";", encoding = "UTF-8", stringsAsFactors = FALSE)
+                     sep=",", encoding = "UTF-8", stringsAsFactors = FALSE)
 
 converteddata_uk <- fromLATtoCYR(dat$FIELD.245, tolanguage="Ukrainian")
 }
