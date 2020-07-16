@@ -4,7 +4,9 @@
 \name{rusnewspapers}
 \alias{rusnewspapers}
 \title{Soviet and post-Soviet independent publications collection}
-\format{XML}
+\format{
+XML
+}
 \description{
 Soviet and post-Soviet independent publications collection, Hoover Institution Library & Archives, USA
 }

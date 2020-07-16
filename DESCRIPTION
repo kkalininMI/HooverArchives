@@ -7,7 +7,7 @@ Maintainer: The package maintainer <kkalinin@umich.edu>
 Description: The package consists of various functions aimed to help the user with basic metadata processing tasks.
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Depends: 
       R (>= 2.10)
 Imports:

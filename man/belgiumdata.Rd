@@ -4,7 +4,9 @@
 \name{BelgiumData}
 \alias{BelgiumData}
 \title{Belgium Data}
-\format{XLSX}
+\format{
+XLSX
+}
 \description{
 Belgium data, Hoover Institution Library & Archives, USA
 }

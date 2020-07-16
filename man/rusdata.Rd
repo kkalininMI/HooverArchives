@@ -4,7 +4,9 @@
 \name{rusdata}
 \alias{rusdata}
 \title{Russian Subject Collection}
-\format{XML}
+\format{
+XML
+}
 \description{
 Russian Subject Collection, Hoover Institution Library & Archives, USA
 }
