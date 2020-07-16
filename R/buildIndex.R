@@ -101,9 +101,10 @@ buildIndex<-function(x=NULL,y=NULL, index_simplify=FALSE, index_hashing=FALSE, f
   if(fuzzy_matching==TRUE){
     a<-x[!x%in%y]
     b<-y[!y%in%x]
-    fuzzy_data <- Index_fuzzy_function(a,b,x,y)
+    if(length(a)>0 & length(b)>0){
+      fuzzy_data <- Index_fuzzy_function(a,b,x,y)
+      y=fuzzy_data}
     #fuzzy_data[!(fuzzy_data%in%x) & fuzzy_data!="NOT MATCHED B"]  <- "NOT MATCHED A"
-    y=fuzzy_data
   }
 
   if(index_hashing==TRUE){
