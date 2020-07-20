@@ -56,14 +56,16 @@ This package implements various metadata processing tasks performed at the Hoove
      #Load data and create indices
      
      #Open Sheet 1
-     dat2.1<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), sheetIndex=1, header=FALSE, encoding = "utf-8")
+     dat2.1<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), 
+                       sheetIndex=1, header=FALSE, encoding = "utf-8")
      dat2.1[]<-lapply(dat2.1, as.character)
      colnames(dat2.1)<-as.character(dat2.1[3,])
      dat2.1<-dat2.1[-(1:3),-c(1,14)];
      dat2.1$indexW<-dat2.1$`Item title`
     
      #Open Sheet 2
-     dat2.2<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), sheetIndex=2, header=TRUE, encoding = "utf-8")
+     dat2.2<-read.xlsx(system.file("BelgiumData.xlsx", package="HooverArchives"), 
+                       sheetIndex=2, header=TRUE, encoding = "utf-8")
      dat2.2$indexW<- dat2.2$`Packet.Catalog.Title`
     
      #Merge two dataframe using BuildIndex and Merge_data functions
@@ -75,21 +77,24 @@ This package implements various metadata processing tasks performed at the Hoove
     
      #Use fromFILEStoSERIES() to add the Series row
      coverted.dat<-fromFILEStoSERIES(dat=mdat,
-                                    series_title="Series title",
-                                    files="index",
-                                    series_scope_note="Series scope note",
-                                    series_date_range="Hoover date range",
-                                    scope_and_content="Scope.and.content",
-                                    problems_notes="Series scope note",
-                                    box_barcode="Box_Barcode",
-                                    top_container="Final.Box..")
+                               series_title="Series title",
+                               files="index",
+                               series_scope_note="Series scope note",
+                               series_date_range="Hoover date range",
+                               scope_and_content="Scope.and.content",
+                               problems_notes="Series scope note",
+                               box_barcode="Box_Barcode",
+                               ckey="Ckey.x",
+                               top_container="Final.Box..")
      coverted.dat$Date<-dateReformatter(coverted.dat$Date)
-     datHarvard<-subset(coverted.dat, select=c("Title", "Hierarchical_Relationship",	"Processing_Information", 
-                                               "Ckey_x", "Ckey_y", "Description_Level",	"Date", "Top_Container_[indicator]",
-                                               "Box_Barcode", "Scope_and_content"), value=TRUE)
+     convertedtoArchivesSpace<-subset(coverted.dat, select=c(
+                               "Title", "Hierarchical_Relationship",	
+                               "Processing_Information", "CkeyV", "Description_Level",	"Date",
+                               "Top_Container_[indicator]",
+                               "Box_Barcode", "Scope_and_content"), value=TRUE)
+
      #Save file in xlsx to preserve diacritic characters
      #write.xlsx(datHarvard, "convertedtoArchivesSpace.xlsx", sheetName = "ArchivesSpace", col.names = TRUE)
-
 
 
 3. <em> fromSERIEStoFILES(dat = NULL, issueDates = NULL, locale = "English") </em>
@@ -121,7 +126,7 @@ This package implements various metadata processing tasks performed at the Hoove
     
     convdata<-fromSERIEStoFILES(file_transf, issueDates="note.text", locale="Russian")
     
-    write.csv(convdata, "convdata_2012C30.csv")
+    #write.csv(convdata, "convdata_2012C30.csv")
 
 4. <em> fromLATtoCYR(mdat, LARU = TRUE, RURU = FALSE, EnglishDetection = TRUE, EnglishLength = NULL, RussianCorrection = FALSE,        SensitivityThreshold = 0.1) </em>
 
@@ -129,8 +134,8 @@ This package implements various metadata processing tasks performed at the Hoove
 
   + *mdat* -- character vector to be back-transliterated to Cyrillic.
   + *tolanguage* -- 	language the text needs to be converted to ("Russian" by default). "Ukrainian" is an option.
-  + *LARU* -- rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are defined in the file "transliterationLARU.csv").
-  + *RURU* -- rules to correct transliterated original Cyrillic (the rules are defined in the file "transliterationRURU.csv").
+  + *LAOR* -- rules of tranliteration from transliterated Cyrillic to original Cyrillic (the rules are listed in the file "transliterationLAOR.csv").
+  + *OROR* -- rules to correct transliterated original Cyrillic (the rules are listed in the file "transliterationOROR.csv").
   + *EnglishDetection* -- if set to TRUE, the script avoids transliteration of words found in the English vocabulary (file: english.txt). If set to FALSE, only user defined stop words are used (file: stopwordsfile.csv).
   + *EnglishLength* -- threshold is set to ignore EnglishDectection words below given threshold.
   + *RussianCorrection* -- if set to TRUE, the script attempts to match every back-transliterated word with the Russian vocabulary (files: russian.txt and russian_surnames.txt).
@@ -140,12 +145,16 @@ This package implements various metadata processing tasks performed at the Hoove
 
     library(HooverArchives)
     
-    dat<-c("Mezhdunarodnaia gazeta. Gl. redaktor: Iu. Zarechkin. Moscow, Russia. Semiweekly. 199?",
-    "DEN' UCHITELIA komissiia po obrazovaniiu ob''edineniia Iabloko",
-    "III-ii RIM vestnik Rossiiskogo patrioticheskogo dvizheniia. Redaktory: M. Artem'ev, V. Rugich. Moscow, Russia.")
+    # conversion to Russian
+    dat<-c("Mezhdunarodnaia gazeta. Gl. redaktor: Iu. Zarechkin. Moscow, Russia. Semiweekly. 199?", "DEN' UCHITELIA komissiia po obrazovaniiu ob''edineniia Iabloko", "III-ii RIM vestnik Rossiiskogo patrioticheskogo dvizheniia. Redaktory: M. Artem'ev, V. Rugich. Moscow, Russia.")
     
-    converteddata <- fromLATtoCYR(dat, LARU=TRUE, RURU=FALSE, EnglishDetection=TRUE, EnglishLength=4)
+    converteddata_ru <- fromLATtoCYR(dat, LAOR=TRUE, OROR=FALSE, EnglishDetection=TRUE)
+
+    # conversion to Ukrainian
+    dat<-read.csv(system.file("Ukraine_microform.csv", package="HooverArchives"), sep=",", encoding = "UTF-8", stringsAsFactors = FALSE)
     
+    converteddata_uk <- fromLATtoCYR(dat$FIELD.245, tolanguage="Ukrainian")
+
 
 5. <em> dateReformatter(datV) </em>
 
