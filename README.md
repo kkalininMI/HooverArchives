@@ -1,3 +1,6 @@
+---
+output: html_document
+---
 # HooverArchives
 This package implements various metadata processing tasks performed at the Hoover Institution Library & Archives.
 
