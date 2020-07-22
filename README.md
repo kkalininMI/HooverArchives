@@ -128,7 +128,7 @@ This package implements various metadata processing tasks performed at the Hoove
     
     #write.csv(convdata, "convdata_2012C30.csv")
 
-4. <em> fromLATtoCYR(mdat, LARU = TRUE, RURU = FALSE, EnglishDetection = TRUE, EnglishLength = NULL, RussianCorrection = FALSE,        SensitivityThreshold = 0.1) </em>
+4. <em> fromLATtoCYR(mdat, LAOR = TRUE, OROR = FALSE, EnglishDetection = TRUE, EnglishLength = NULL, RussianCorrection = FALSE, SensitivityThreshold = 0.1) </em>
 
   This function helps to convert transliterated Cyrillic to original Cyrillic.
 

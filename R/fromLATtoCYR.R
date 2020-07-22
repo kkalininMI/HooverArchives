@@ -271,7 +271,6 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   if(EnglishDetection){
     dicE <- read.table(system.file("english.txt", package="HooverArchives"),
                        header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)[,1]
-    #dicE <- paste("^", dicE, sep="")
 
     if(!is.null(EnglishLength)){
       dicE<-dicE[nchar(dicE)>=EnglishLength]
