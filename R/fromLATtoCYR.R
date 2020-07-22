@@ -37,16 +37,28 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
                        EnglishLength=NULL, RussianCorrection=FALSE, SensitivityThreshold = 0.1){
 
   #Global settings
-  Sys.setlocale("LC_ALL",locale = tolanguage)
+  #Sys.setlocale("LC_ALL",locale = tolanguage)
 
-  if(tolanguage=="Russian"){trvfilename="transliterationLARU.csv"; rrvfilename="transliterationRURU.csv";
-  dicR<-read.table(system.file("russian.txt", package="HooverArchives"),
-                   header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
-  dicN<-read.table(system.file("russian_surnames.txt", package="HooverArchives"),
-                   header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
-  dicRS<-unname(unlist(dicR),unlist(dicN))}
 
-  if(tolanguage=="Ukrainian"){trvfilename="transliterationLAUK.csv"; rrvfilename=NULL}
+  if(tolanguage=="Russian"){
+                            tryCatch(Sys.setlocale(category='LC_CTYPE', locale='ru_RU'),
+                                     warning = function(c) Sys.setlocale(category='LC_CTYPE', locale='Russian_Russia.1251'))
+                            trvfilename="transliterationLARU.csv";
+                            rrvfilename="transliterationRURU.csv"}
+
+  if(tolanguage=="Ukrainian"){tryCatch(Sys.setlocale(category='LC_CTYPE', locale='uk_UA'),
+                                       warning = function(c) Sys.setlocale(category='LC_CTYPE', locale='Ukrainian_Ukraine.1251'))
+                             Sys.setlocale("LC_CTYPE",locale = "Ukrainian_Ukraine.1251");
+                              trvfilename="transliterationLAUK.csv";
+                              rrvfilename=NULL}
+
+  if(RussianCorrection){
+    dicR<-read.table(system.file("russian.txt", package="HooverArchives"),
+                     header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
+    dicN<-read.table(system.file("russian_surnames.txt", package="HooverArchives"),
+                     header = FALSE, sep = "", dec = ".", stringsAsFactors=FALSE)
+    dicRS<-unname(unlist(dicR),unlist(dicN))}
+
 
   autodetected <- NULL
   transOROR.vector <- NULL
