@@ -13,13 +13,15 @@
 #' @param lang_encoding sets system's locale to specific language (by default "English")
 #' @param add_articles vector of extra articles to be excluded from alphabetical ordering
 #' @param remove_special_characters remove special characters, i.e. horizontal brackets (TRUE by default)
-#' @param alphabetizewithinbrackets by a string within square brackets (FALSE by default)
+#' @param alphabetizewithinbrackets alphabetize by a string within square brackets (FALSE by default)
+#' @param diacriticslatinization transform characters with diacritics to Latin for alphabetization (TRUE by default)
 #' @param ... other parameters
 #' @export
 #' @importFrom stringdist stringdist
 #' @import dplyr
 #' @import readxl
 #' @import xlsx
+#' @import stringi
 #' @return Returns altered dataframe.
 #' @examples
 #'
@@ -81,6 +83,7 @@ fromFILEStoSERIES<-function(dat=NULL,
                             add_articles=NULL,
                             remove_special_characters=TRUE,
                             alphabetizewithinbrackets=FALSE,
+                            diacriticslatinization=TRUE,
                             ...){
 
   dat[] <- lapply(dat, as.character)
@@ -104,7 +107,11 @@ fromFILEStoSERIES<-function(dat=NULL,
   filesV <- dat[,cNames%in%files]
 
   k=1
+  series_titleV<-gsub("^\\s+|\\s+$", "", series_titleV)
+  series_scope_noteV<-gsub("^\\s+|\\s+$", "", series_scope_noteV)
+  series_titleV<-gsub("^\\s+|\\s+$", "", series_titleV)
   TitleS <-	paste(series_titleV, '. (', series_scope_noteV, ", ", series_date_rangeV, ")", sep="")
+  TitleS <-	gsub("\\(+|\\(+\\s*\\(+", "(", TitleS); TitleS <-	gsub("\\)+|\\)+\\s*\\)+", ")", TitleS)
   dat$TitleF <-	filesV
   dat$Group <- NA
   dat$Title <- NA
@@ -164,6 +171,7 @@ fromFILEStoSERIES<-function(dat=NULL,
     x[is.na(x)] <- "NA"
     first <- regmatches(x, regexpr("(\\w+)", x))
     x[first %in% articles]<-gsub("(^\\w+\\s+)|([[:alpha:]])'", "", x[first%in%articles])
+    x <- gsub("\\s*\\([^\\)]+\\)","", x)
     x <- gsub("^\\s+", "", x)
     return(x)}
 
@@ -173,12 +181,17 @@ fromFILEStoSERIES<-function(dat=NULL,
   }else{
     superdat$indexN <- remove_articles(superdat$Title)
     superdat$indexN <- gsub("\u00B4", "", superdat$indexN)
+    if(diacriticslatinization){
+      Encoding(superdat[["indexN"]]) <- "UTF-8"
+      superdat$indexN <- stri_trans_general(superdat$indexN,"Latin-ASCII")
+    }
   }
 
   index_frame<-superdat%>%select(Hierarchical_Relationship, Group, indexN)%>%
     filter(Hierarchical_Relationship==1)%>%
     arrange(indexN)%>%
     mutate(GroupN = 1:n())
+
   superdat$GroupN<-sapply(superdat$Group, function(x)  index_frame$GroupN[index_frame$Group%in%x])
   superdat <- arrange(superdat, GroupN, Hierarchical_Relationship, indexN, Date)
 
@@ -201,5 +214,9 @@ fromFILEStoSERIES<-function(dat=NULL,
 
   #remove rows with NAs in Title
   superdat <- superdat[!grepl("(^NA\\.*$)|(^NA\\.)", superdat$Title),]
+
+  superdat$Title <-	gsub("\\(+|\\(+\\s*\\(+", "(", superdat$Title)
+  superdat$Title <-	gsub("\\)+|\\)+\\s*\\)+", ")", superdat$Title)
+
 
   return(superdat)}

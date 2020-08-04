@@ -19,6 +19,7 @@ fromFILEStoSERIES(
   add_articles = NULL,
   remove_special_characters = TRUE,
   alphabetizewithinbrackets = FALSE,
+  diacriticslatinization = TRUE,
   ...
 )
 }
@@ -49,7 +50,9 @@ fromFILEStoSERIES(
 
 \item{remove_special_characters}{remove special characters, i.e. horizontal brackets (TRUE by default)}
 
-\item{alphabetizewithinbrackets}{by a string within square brackets (FALSE by default)}
+\item{alphabetizewithinbrackets}{alphabetize by a string within square brackets (FALSE by default)}
+
+\item{diacriticslatinization}{transform characters with diacritics to Latin for alphabetization (TRUE by default)}
 
 \item{...}{other parameters}
 }
