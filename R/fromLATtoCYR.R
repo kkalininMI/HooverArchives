@@ -41,16 +41,16 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
 
 
   if(tolanguage=="Russian"){
-                            tryCatch(Sys.setlocale(category='LC_CTYPE', locale='ru_RU'),
-                                     warning = function(c) Sys.setlocale(category='LC_CTYPE', locale='Russian_Russia.1251'))
-                            trvfilename="transliterationLARU.csv";
-                            rrvfilename="transliterationRURU.csv"}
+    tryCatch(Sys.setlocale(category='LC_CTYPE', locale='ru_RU'),
+             warning = function(c) Sys.setlocale(category='LC_CTYPE', locale='Russian_Russia.1251'))
+    trvfilename="transliterationLARU.csv";
+    rrvfilename="transliterationRURU.csv"}
 
   if(tolanguage=="Ukrainian"){tryCatch(Sys.setlocale(category='LC_CTYPE', locale='uk_UA'),
                                        warning = function(c) Sys.setlocale(category='LC_CTYPE', locale='Ukrainian_Ukraine.1251'))
-                             Sys.setlocale("LC_CTYPE",locale = "Ukrainian_Ukraine.1251");
-                              trvfilename="transliterationLAUK.csv";
-                              rrvfilename=NULL}
+    Sys.setlocale("LC_CTYPE",locale = "Ukrainian_Ukraine.1251");
+    trvfilename="transliterationLAUK.csv";
+    rrvfilename=NULL}
 
   if(RussianCorrection){
     dicR<-read.table(system.file("russian.txt", package="HooverArchives"),
@@ -93,7 +93,8 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   translit<-function(dat, string_vec,  EnglishDetection, SensitivityThreshold, RussianCorrection){
 
     english_lookup <- function(a){
-      splV <- unlist(strsplit(a," |\\.|[[:punct:]]"))
+      varSpl <- " |\\-+|:+|!+|\\++|\\#+|\\#+|\\$|\\%+\\^+|\\&+|\\*|\\_+|\\:+|\\,+|\\.+|\\;+|\\'+$|\\\"+"
+      splV <- unlist(strsplit(a, varSpl))
       splV <- gsub("\\d+|[[:punct:]]", "", splV)
       splV <- splV[splV!=""]
       splV <- unique(splV);
@@ -191,18 +192,21 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       autodetected <- tryCatch(names(autodetected)[autodetected], error = function(e) e)
       if(inherits(autodetected,  "error")){autodetected <-NULL}
       if(length(autodetected) == 0){autodetected <- NULL}
-      stopwords <- c(autodetected, stopwords)
+      stopwords <- unique(c(autodetected, stopwords))
     }
 
     stopWordsReplace <- stopwords_encoder(stopwords)
 
     for(i in 1:length(stopWordsReplace)){
-      stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b",
-                                         "(?!\\')", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
+      #stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b",
+      #                                   "(?!\\')", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
+
+      stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
     }
 
     stringWithStopWords <-
       gsub("^''|((?<=[[:punct:][:space:]])+'')|''(?=[[:punct:][:space:]])|''$", "@'@'", stringWithStopWords, perl=TRUE)
+
 
     for(i in seq(length(subV.s),1,-1)){
       char_vS <- unlist(subV.s[i])
