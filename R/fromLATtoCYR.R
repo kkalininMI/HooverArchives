@@ -93,9 +93,13 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   translit<-function(dat, string_vec,  EnglishDetection, SensitivityThreshold, RussianCorrection){
 
     english_lookup <- function(a){
-      varSpl <- " |\\-+|:+|!+|\\++|\\#+|\\#+|\\$|\\%+\\^+|\\&+|\\*|\\_+|\\:+|\\,+|\\.+|\\;+|\\'+$|\\\"+"
-      splV <- unlist(strsplit(a, varSpl))
-      splV <- gsub("\\d+|[[:punct:]]", "", splV)
+      varSpl <- c(" ", "\\-", "\\:", "\\!", "\\+", "\\?", "\\#", "\\$", "\\%", "\\^", "\\&", "\\*", "\\_", "\\,", "\\.",  "\\;", "\\\"")
+      varSpl1 <- paste(c(paste(varSpl, "+", sep=""), "\\'+$", sep=""), collapse="|")
+      varSpl1 <- substring(varSpl1,1,nchar(varSpl1)-1)
+      splV <- unlist(strsplit(a, varSpl1, perl=TRUE))
+      varSpl2 <- paste(c(paste("^", varSpl, "+", sep=""), "\\d+", "^\\'+", sep=""), collapse="|")
+      varSpl2 <- substring(varSpl2,1,nchar(varSpl2)-1)
+      splV <- gsub(varSpl2 , "", splV)
       splV <- splV[splV!=""]
       splV <- unique(splV);
 
@@ -105,6 +109,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
         yy <- yy[substring(yy,1,1)%in%substring(xx,1,1)]
         if(xx%in%yy){return(TRUE)}
         return(FALSE)})
+
       return(minInd)}
 
     fuzzy_function <- function(a, SensitivityThreshold){
