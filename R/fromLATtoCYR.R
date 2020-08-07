@@ -209,9 +209,14 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
     }
 
-    stringWithStopWords <-
-      gsub("^''|((?<=[[:punct:][:space:]])+'')|''(?=[[:punct:][:space:]])|''$", "@'@'", stringWithStopWords, perl=TRUE)
-
+    if(grepl("'''", stringWithStopWords)){
+      stringWithStopWords <- gsub("^''|((?<=[[:punct:][:space:]])+'')|''(?=[[:punct:][:space:]])|''$", "'@'@'", stringWithStopWords, perl=TRUE)
+      stringWithStopWords <- gsub("@''", "@'", stringWithStopWords)
+      stringWithStopWords <- gsub("^'@", "@", stringWithStopWords)
+      }else{
+      stringWithStopWords <-
+        gsub("^''|((?<=[[:punct:][:space:]])+'')|''(?=[[:punct:][:space:]])|''$", "@'@'", stringWithStopWords, perl=TRUE)
+    }
 
     for(i in seq(length(subV.s),1,-1)){
       char_vS <- unlist(subV.s[i])
