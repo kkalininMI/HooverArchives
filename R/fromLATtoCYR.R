@@ -93,15 +93,26 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   translit<-function(dat, string_vec,  EnglishDetection, SensitivityThreshold, RussianCorrection){
 
     english_lookup <- function(a){
-      varSpl <- c(" ", "\\-", "\\:", "\\!", "\\+", "\\?", "\\#", "\\$", "\\%", "\\^", "\\&", "\\*", "\\_", "\\,", "\\.",  "\\;", "\\\"")
+      splVn <- NULL
+
+      varSpl <- c(" ", "\\-", "\\:", "\\!", "\\+", "\\?", "\\#", "\\$", "\\%", "\\^", "\\&", "\\*",
+                  "\\_", "\\,", "\\.",  "\\;", "\\\"", "\\(", "\\)", "\\[", "\\]", "\\<", "\\>")
       varSpl1 <- paste(c(paste(varSpl, "+", sep=""), "\\'+$", sep=""), collapse="|")
       varSpl1 <- substring(varSpl1,1,nchar(varSpl1)-1)
+
       splV <- unlist(strsplit(a, varSpl1, perl=TRUE))
+
       varSpl2 <- paste(c(paste("^", varSpl, "+", sep=""), "\\d+", "^\\'+", sep=""), collapse="|")
       varSpl2 <- substring(varSpl2,1,nchar(varSpl2)-1)
       splV <- gsub(varSpl2 , "", splV)
       splV <- splV[splV!=""]
       splV <- unique(splV);
+
+      if(any(grepl("(?<=s)\\'", splV, perl=TRUE))){
+        splVn <- which(grepl("(?<=s)\\'", splV, perl=TRUE))
+        splVo <- splV
+        splV[splVn] <- substring(splV[splVn], 1, nchar(splV[splVn])-2)}
+
 
       minInd <- sapply(splV, function(x, y = dicE){
         xx <- tolower(x)
@@ -110,6 +121,9 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
         if(xx%in%yy){return(TRUE)}
         return(FALSE)})
 
+      if(!is.null(splVn)){
+        names(minInd)[splVn]<-splVo[splVn]
+      }
       return(minInd)}
 
     fuzzy_function <- function(a, SensitivityThreshold){
@@ -206,8 +220,11 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       #stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b",
       #                                   "(?!\\')", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
 
-      stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
+      #stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
+
+      stringWithStopWords <- gsub(stopwords[i], stopWordsReplace[i], stringWithStopWords)
     }
+
 
     if(grepl("'''", stringWithStopWords)){
       stringWithStopWords <- gsub("^''|((?<=[[:punct:][:space:]])+'')|''(?=[[:punct:][:space:]])|''$", "'@'@'", stringWithStopWords, perl=TRUE)
