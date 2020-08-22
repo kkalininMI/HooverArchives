@@ -93,7 +93,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   translit<-function(dat, string_vec,  EnglishDetection, SensitivityThreshold, RussianCorrection){
 
     english_lookup <- function(a){
-      splVn <- NULL
+      splVn <- splVn2 <- splVn3 <- NULL
 
       varSpl <- c(" ", "\\-", "\\:", "\\!", "\\+", "\\?", "\\#", "\\$", "\\%", "\\^", "\\&", "\\*",
                   "\\_", "\\,", "\\.",  "\\;", "\\\"", "\\(", "\\)", "\\[", "\\]", "\\<", "\\>")
@@ -108,11 +108,21 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       splV <- splV[splV!=""]
       splV <- unique(splV);
 
-      if(any(grepl("(?<=s)\\'", splV, perl=TRUE))){
-        splVn <- which(grepl("(?<=s)\\'", splV, perl=TRUE))
+      if(any(grepl("(?<=s)\\'$", splV, perl=TRUE))){
+        splVn <- which(grepl("(?<=s)\\'$", splV, perl=TRUE))
         splVo <- splV
         splV[splVn] <- substring(splV[splVn], 1, nchar(splV[splVn])-2)}
 
+      if(any(grepl("(?<=\\')s$", splV, perl=TRUE))){
+        splVn2 <- which(grepl("(?<=\\')s$", splV, perl=TRUE))
+        splVo2 <- splV
+        splV[splVn2] <- substring(splV[splVn2], 1, nchar(splV[splVn2])-2)}
+
+      if(any(grepl("('+$)|(\"+$)", splV, perl=TRUE))){
+        splVn3 <- which(grepl("(\'+$)|(\"+$)", splV, perl=TRUE))
+        splVo3 <- splV
+        splV[splVn3] <- gsub("[[:punct:]]+$", "", splV[splVn3])
+        }
 
       minInd <- sapply(splV, function(x, y = dicE){
         xx <- tolower(x)
@@ -124,6 +134,15 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       if(!is.null(splVn)){
         names(minInd)[splVn]<-splVo[splVn]
       }
+
+      if(!is.null(splVn2)){
+        names(minInd)[splVn2]<-splVo2[splVn2]
+      }
+
+      if(!is.null(splVn3)){
+        names(minInd)[splVn3]<-splVo3[splVn3]
+      }
+
       return(minInd)}
 
     fuzzy_function <- function(a, SensitivityThreshold){
@@ -213,18 +232,16 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       if(length(autodetected) == 0){autodetected <- NULL}
       stopwords <- unique(c(autodetected, stopwords))
     }
-
     stopWordsReplace <- stopwords_encoder(stopwords)
 
     for(i in 1:length(stopWordsReplace)){
-      #stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b",
-      #                                   "(?!\\')", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
-
-      #stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
-
-      stringWithStopWords <- gsub(stopwords[i], stopWordsReplace[i], stringWithStopWords)
-    }
-
+      if(grepl("[[:punct:]]$", stopwords[i])){
+        stringWithStopWords <- gsub(stopwords[i], stopWordsReplace[i], stringWithStopWords)
+        }else{
+          #stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
+          stringWithStopWords <- gsub(paste0("(?<![[:alpha:]]')", stopwords[i], sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
+        }
+      }
 
     if(grepl("'''", stringWithStopWords)){
       stringWithStopWords <- gsub("^''|((?<=[[:punct:][:space:]])+'')|''(?=[[:punct:][:space:]])|''$", "'@'@'", stringWithStopWords, perl=TRUE)
