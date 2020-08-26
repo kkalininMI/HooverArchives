@@ -232,14 +232,17 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
       if(length(autodetected) == 0){autodetected <- NULL}
       stopwords <- unique(c(autodetected, stopwords))
     }
-    stopWordsReplace <- stopwords_encoder(stopwords)
 
-    for(i in 1:length(stopWordsReplace)){
-      if(grepl("[[:punct:]]$", stopwords[i])){
-        stringWithStopWords <- gsub(stopwords[i], stopWordsReplace[i], stringWithStopWords)
+    stopWordsReplace <- stopwords_encoder(stopwords)
+    replace_mat<-data.frame(stopwords, stopWordsReplace)
+    replace_mat<-replace_mat[order(nchar(replace_mat[,1]), replace_mat[,1], decreasing=TRUE),]
+
+    for(i in 1:nrow(replace_mat)){
+      if(grepl("[[:punct:]]$", replace_mat[i,1])){
+        stringWithStopWords <- gsub(replace_mat[i,1], replace_mat[i,2], stringWithStopWords)
         }else{
           #stringWithStopWords <- gsub(paste0("\\b",stopwords[i], "\\b", sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
-          stringWithStopWords <- gsub(paste0("(?<![[:alpha:]]')", stopwords[i], sep=""), stopWordsReplace[i], stringWithStopWords, perl=TRUE)
+          stringWithStopWords <- gsub(paste0("(?<![[:alpha:]]')", replace_mat[i,1], sep=""), replace_mat[i,2], stringWithStopWords, perl=TRUE)
         }
       }
 
