@@ -95,8 +95,8 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
     english_lookup <- function(a){
       splVn <- splVn2 <- splVn3 <- NULL
 
-      varSpl <- c(" ", "\\-", "\\:", "\\!", "\\+", "\\?", "\\#", "\\$", "\\%", "\\^", "\\&", "\\*",
-                  "\\_", "\\,", "\\.",  "\\;", "\\\"", "\\(", "\\)", "\\[", "\\]", "\\<", "\\>")
+      varSpl <- c(" ", "\\-", "\\:", "\\!", "\\+", "\\?", "\\#", "\\$", "\\%", "\\^", "\\&", "\\*", "\\\\", "\\/", "\\|",
+                  "\\_", "\\,", "\\.",  "\\;", "\\\"", "\\(", "\\)", "\\[", "\\]", "\\<", "\\>", "\\{", "\\}", "\\~")
       varSpl1 <- paste(c(paste(varSpl, "+", sep=""), "\\'+$", sep=""), collapse="|")
       varSpl1 <- substring(varSpl1,1,nchar(varSpl1)-1)
 
@@ -378,6 +378,7 @@ fromLATtoCYR<-function(mdat=NULL, tolanguage="Russian", LAOR=TRUE, OROR=FALSE, E
   }
 
   result<-gsub("@", "", result)
+  result<-gsub("''", "\"", result)
 
   return(result)}
 
