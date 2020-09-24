@@ -5,6 +5,7 @@
 #' @param index_simplify parameter eliminating major inconsistencies between indices (FALSE by default)
 #' @param index_hashing converting index to hash index (FALSE by default)
 #' @param fuzzy_matching enable fuzzy matching between the indices (FALSE by default). If TRUE, the window pops up: enter 0 in the third column for correctly fuzzy matched pair, and 1 otherwise. If all pairs are correctly matched, close the window without entering any information into the third column.
+#' @param completematch preserve more matching information (FALSE by default)
 #' @param ... other parameters
 #' @export
 #' @importFrom stringdist stringdist
@@ -58,14 +59,18 @@
 
 
 #Matching function for two dataframes
-buildIndex<-function(x=NULL,y=NULL, index_simplify=FALSE, index_hashing=FALSE, fuzzy_matching=FALSE, ...){
+buildIndex<-function(x=NULL,y=NULL, index_simplify=FALSE, index_hashing=FALSE, fuzzy_matching=FALSE, completematch=FALSE, ...){
 
-  Index_conv_function <- function(var){
-    s1 <- paste(gsub(",.*","", var), ")", sep="");
-    s2 <- gsub("\\)+",")", s1)
-    s3 <- gsub("\\.|\\,", "", s2)
-    s3[!grepl("\\(", s3)] <- gsub("\\)", "", s3[!grepl("\\(", s3)])
-    s4<-gsub("([a-z])(\\()", "\\1 \\2",  s3)
+  Index_conv_function <- function(var, completematch){
+    if(isFALSE(completematch)){
+      s1 <- paste(gsub(",.*","", var), ")", sep="")
+      }else{
+      s1 <- var
+      }
+      s2 <- gsub("\\)+",")", s1)
+      s3 <- gsub("\\.|\\,", "", s2)
+      s3[!grepl("\\(", s3)] <- gsub("\\)", "", s3[!grepl("\\(", s3)])
+      s4<-gsub("([a-z])(\\()", "\\1 \\2",  s3)
     return(s4)}
 
   Hindex_conv_function <- function(var){
@@ -94,8 +99,8 @@ buildIndex<-function(x=NULL,y=NULL, index_simplify=FALSE, index_hashing=FALSE, f
     return(y)}
 
   if(index_simplify==TRUE){
-    x <- Index_conv_function(x);
-    y <- Index_conv_function(y);
+    x <- Index_conv_function(x,completematch);
+    y <- Index_conv_function(y,completematch);
   }
 
   if(fuzzy_matching==TRUE){

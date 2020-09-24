@@ -10,6 +10,7 @@ buildIndex(
   index_simplify = FALSE,
   index_hashing = FALSE,
   fuzzy_matching = FALSE,
+  completematch = FALSE,
   ...
 )
 }
@@ -23,6 +24,8 @@ buildIndex(
 \item{index_hashing}{converting index to hash index (FALSE by default)}
 
 \item{fuzzy_matching}{enable fuzzy matching between the indices (FALSE by default). If TRUE, the window pops up: enter 0 in the third column for correctly fuzzy matched pair, and 1 otherwise. If all pairs are correctly matched, close the window without entering any information into the third column.}
+
+\item{completematch}{preserve more matching information (FALSE by default)}
 
 \item{...}{other parameters}
 }

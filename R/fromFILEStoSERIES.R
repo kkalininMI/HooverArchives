@@ -15,6 +15,7 @@
 #' @param remove_special_characters remove special characters, i.e. horizontal brackets (TRUE by default)
 #' @param alphabetizewithinbrackets alphabetize by a string within square brackets (FALSE by default)
 #' @param diacriticslatinization transform characters with diacritics to Latin for alphabetization (TRUE by default)
+#' @param USextension file name change to reflect specifics of US data
 #' @param ... other parameters
 #' @export
 #' @importFrom stringdist stringdist
@@ -84,6 +85,7 @@ fromFILEStoSERIES<-function(dat=NULL,
                             remove_special_characters=TRUE,
                             alphabetizewithinbrackets=FALSE,
                             diacriticslatinization=TRUE,
+                            USextension=FALSE,
                             ...){
 
   dat[] <- lapply(dat, as.character)
@@ -93,9 +95,10 @@ fromFILEStoSERIES<-function(dat=NULL,
   if(isTRUE(remove_special_characters)){
     remove_sc = "\U00fe20|\U00fe21|\U00361"
     remove_sc<-paste(remove_special_characters, remove_sc, collapse="|")
-    remove_sc<-gsub("^\\s+","", remove_sc)}
+    remove_sc<-gsub("^\\s+","", remove_sc)
+    dat <- as.data.frame(apply(dat, 2, function(x) gsub(remove_sc, "", x, perl=TRUE)), stringsAsFactors = FALSE)
+    }
 
-  dat <- as.data.frame(apply(dat, 2, function(x) gsub(remove_sc, "", x, perl=TRUE)), stringsAsFactors = FALSE)
   dat[] <- lapply(dat, as.character)
 
   cNames <- colnames(dat)
@@ -106,6 +109,7 @@ fromFILEStoSERIES<-function(dat=NULL,
   CkeyV <- dat[,cNames%in%ckey]
   filesV <- dat[,cNames%in%files]
 
+  #browser()
   k=1
   series_titleV<-gsub("^\\s+|\\s+$", "", series_titleV)
   series_scope_noteV<-gsub("^\\s+|\\s+$", "", series_scope_noteV)
@@ -152,6 +156,8 @@ fromFILEStoSERIES<-function(dat=NULL,
     }
     gr=gr+1
   }
+  #browser()
+
   colnames(superdat)<-gsub(" |\\.", "_", colnames(dat))
 
   if(!is.null(top_container)){
@@ -159,6 +165,12 @@ fromFILEStoSERIES<-function(dat=NULL,
   }
 
   superdat <- superdat[!is.na(superdat$Group),]
+
+  if(USextension){
+    superdat$Title[superdat$Description_Level!="Series"]<-paste(gsub(":", "",
+                                                                     gsub("\\s+(?=:)", "", gsub("(?<=:).+", "", superdat$Title[superdat$Description_Level!="Series"], perl=TRUE), perl=TRUE)), ")", sep="")
+  }
+
 
   #reordering
   remove_articles<-function(x){
@@ -214,6 +226,8 @@ fromFILEStoSERIES<-function(dat=NULL,
 
   #remove rows with NAs in Title
   superdat <- superdat[!grepl("(^NA\\.*$)|(^NA\\.)", superdat$Title),]
+
+
 
   superdat$Title <-	gsub("\\(+|\\(+\\s*\\(+", "(", superdat$Title)
   superdat$Title <-	gsub("\\)+|\\)+\\s*\\)+", ")", superdat$Title)

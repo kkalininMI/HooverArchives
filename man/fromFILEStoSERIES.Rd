@@ -20,6 +20,7 @@ fromFILEStoSERIES(
   remove_special_characters = TRUE,
   alphabetizewithinbrackets = FALSE,
   diacriticslatinization = TRUE,
+  USextension = FALSE,
   ...
 )
 }
@@ -53,6 +54,8 @@ fromFILEStoSERIES(
 \item{alphabetizewithinbrackets}{alphabetize by a string within square brackets (FALSE by default)}
 
 \item{diacriticslatinization}{transform characters with diacritics to Latin for alphabetization (TRUE by default)}
+
+\item{USextension}{file name change to reflect specifics of US data}
 
 \item{...}{other parameters}
 }
