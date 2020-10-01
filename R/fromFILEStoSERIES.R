@@ -109,7 +109,6 @@ fromFILEStoSERIES<-function(dat=NULL,
   CkeyV <- dat[,cNames%in%ckey]
   filesV <- dat[,cNames%in%files]
 
-  #browser()
   k=1
   series_titleV<-gsub("^\\s+|\\s+$", "", series_titleV)
   series_scope_noteV<-gsub("^\\s+|\\s+$", "", series_scope_noteV)
@@ -156,7 +155,6 @@ fromFILEStoSERIES<-function(dat=NULL,
     }
     gr=gr+1
   }
-  #browser()
 
   colnames(superdat)<-gsub(" |\\.", "_", colnames(dat))
 
@@ -168,7 +166,7 @@ fromFILEStoSERIES<-function(dat=NULL,
 
   if(USextension){
     superdat$Title[superdat$Description_Level!="Series"]<-paste(gsub(":", "",
-                                                                     gsub("\\s+(?=:)", "", gsub("(?<=:).+", "", superdat$Title[superdat$Description_Level!="Series"], perl=TRUE), perl=TRUE)), ")", sep="")
+                                                                     gsub("\\s+(?=:)", "", gsub("(?<=:)\\d+", "", superdat$Title[superdat$Description_Level!="Series"], perl=TRUE), perl=TRUE)), ")", sep="")
   }
 
 
@@ -179,20 +177,30 @@ fromFILEStoSERIES<-function(dat=NULL,
                paste(toupper(substring(s, 1,1)), substring(s, 2), sep=""),
                paste(toupper(s), sep="")))
     }
+
     articles<-Caps(c("l'", "l", "le", "la", "les", "un", "une", "des", "du", "de", "la", "der", "die", "das", "ein", "eine", "het", add_articles))
     x[is.na(x)] <- "NA"
     first <- regmatches(x, regexpr("(\\w+)", x))
     x[first %in% articles]<-gsub("(^\\w+\\s+)|([[:alpha:]])'", "", x[first%in%articles])
-    x <- gsub("\\s*\\([^\\)]+\\)","", x)
+    #x <- gsub("\\s*\\([^\\)]+\\)","", x)
+    x <- tolower(x)
+    x <- gsub("\\s+", " ", x)
     x <- gsub("^\\s+", "", x)
     return(x)}
 
   if(alphabetizewithinbrackets){
-    rem_nat_char_Title <- gsub("[[:punct:]]| ", "", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
+    #rem_nat_char_Title <- gsub("[[:punct:]]| ", "", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
+    rem_nat_char_Title <- gsub("([\\s])|[[:punct:]]", "\\1", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
+    rem_nat_char_Title <- gsub('[0-9]+', '',   rem_nat_char_Title)
+    rem_nat_char_Title <- gsub("\\s+", " ", rem_nat_char_Title)
+    rem_nat_char_Title <- gsub("^\\s+|\\s+$", "", rem_nat_char_Title)
     superdat$indexN <- remove_articles(rem_nat_char_Title)
   }else{
-    superdat$indexN <- remove_articles(superdat$Title)
-    superdat$indexN <- gsub("\u00B4", "", superdat$indexN)
+    superdat$indexN <- gsub("([\\s])|[[:punct:]]", "\\1", remove_articles(superdat$Title), perl=TRUE)
+    #superdat$indexN <- gsub("\u00B4", "", superdat$indexN)
+    superdat$indexN <- gsub('[0-9]+', '',   superdat$indexN)
+    superdat$indexN <- gsub("\\s+", " ", superdat$indexN)
+    superdat$indexN <- gsub("^\\s+|\\s+$", "", superdat$indexN)
     if(diacriticslatinization){
       Encoding(superdat[["indexN"]]) <- "UTF-8"
       superdat$indexN <- stri_trans_general(superdat$indexN,"Latin-ASCII")
