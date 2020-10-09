@@ -17,6 +17,7 @@ Imports:
       dplyr,
       digest,
       stringdist,
+      Unicode,
       stringi,
       devtools,
       readxl,
