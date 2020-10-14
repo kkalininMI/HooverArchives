@@ -41,7 +41,13 @@ testCharSystem <- function(dat, addCharSys=NULL, markword=TRUE, autochange=FALSE
                  "U+00BF", "U+002D", "U+0028", "U+0029", "U+005B", "U+005D",
                  "U+003C", "U+003E", "U+003D", "U+003A", "U+007C", "U+0060",
                  "U+002B", "U+005E", "U+005F", "U+007E", "U+007B", "U+007D",
-                 "U+0024")
+                 "U+0024",
+                 "U+00AB", "U+2039", "U+00BB", "U+203A", "U+201E", "U+201C",
+                 "U+201F", "U+201D", "U+2019", "U+0022", "U+275D", "U+275E",
+                 "U+276E", "U+276F", "U+2E42", "U+301D", "U+301E", "U+301F",
+                 "U+FF02", "U+201A", "U+2018", "U+201B", "U+275B", "U+275C"
+                 )
+
 
   if(is.null(addCharSys)){CharSysv<-c("Latin", "Cyrillic")
                           }else{
@@ -61,7 +67,7 @@ testCharSystem <- function(dat, addCharSys=NULL, markword=TRUE, autochange=FALSE
     punctChars <- c(" ", "\\-", "\\:", "\\!", "\\+", "\\?", "\\#",
                     "\\$", "\\%", "\\^", "\\&", "\\*", "\\\\", "\\/",
                     "\\|", "\\_", "\\,", "\\.",  "\\;", "\\\"", "\\(",
-                    "\\)", "\\[", "\\]", "\\>", "\\{", "\\}", "\\~", "'", "`")
+                    "\\)", "\\[", "\\]", "\\>", "\\{", "\\}", "\\~", "'", "`", "\u00AB")
     sentence<-gsub(paste(punctChars, collapse="|"), " " , sentence)
     splS <- unlist(strsplit(sentence, " ", perl=TRUE))
     splS <- splS[splS!=""]
@@ -161,7 +167,11 @@ testCharSystem <- function(dat, addCharSys=NULL, markword=TRUE, autochange=FALSE
     ep.output <- EntryParser(dat, markword, autochange)
     }else{
       ep.output <- unlist(
-                     lapply(dat, function(x) EntryParser(x, markword, autochange)))
+                     lapply(dat, function(x){
+                       if(is.na(x)|x==""){x
+                         }else{
+                           EntryParser(x, markword, autochange)}
+                     }))
     }
   ep.output
   }
