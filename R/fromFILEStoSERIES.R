@@ -189,23 +189,40 @@ fromFILEStoSERIES<-function(dat=NULL,
     return(x)}
 
   if(alphabetizewithinbrackets){
-    #rem_nat_char_Title <- gsub("[[:punct:]]| ", "", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
-    rem_nat_char_Title <- gsub("([\\s])|[[:punct:]]", "\\1", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
-    rem_nat_char_Title <- gsub('[0-9]+', '',   rem_nat_char_Title)
-    rem_nat_char_Title <- gsub("\\s+", " ", rem_nat_char_Title)
-    rem_nat_char_Title <- gsub("^\\s+|\\s+$", "", rem_nat_char_Title)
-    superdat$indexN <- remove_articles(rem_nat_char_Title)
-  }else{
-    superdat$indexN <- gsub("([\\s])|[[:punct:]]", "\\1", remove_articles(superdat$Title), perl=TRUE)
-    #superdat$indexN <- gsub("\u00B4", "", superdat$indexN)
-    superdat$indexN <- gsub('[0-9]+', '',   superdat$indexN)
-    superdat$indexN <- gsub("\\s+", " ", superdat$indexN)
-    superdat$indexN <- gsub("^\\s+|\\s+$", "", superdat$indexN)
-    if(diacriticslatinization){
-      Encoding(superdat[["indexN"]]) <- "UTF-8"
-      superdat$indexN <- stri_trans_general(superdat$indexN,"Latin-ASCII")
+    ##rem_nat_char_Title <- gsub("[[:punct:]]| ", "", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
+    #rem_nat_char_Title <- gsub("([\\s])|[[:punct:]]", "\\1", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title), perl=TRUE))
+    #rem_nat_char_Title <- gsub('[0-9]+', '',   rem_nat_char_Title)
+    #rem_nat_char_Title <- gsub("\\s+", " ", rem_nat_char_Title)
+    #rem_nat_char_Title <- gsub("^\\s+|\\s+$", "", rem_nat_char_Title)
+    #superdat$indexN <- remove_articles(rem_nat_char_Title)
+
+    #subset for data with brackets
+    dwithbrackets<-grepl("\\[|\\]", remove_articles(superdat$Title))
+    rem_nat_char_Title<-rep(NA, nrow(superdat))
+    rem_nat_char_Title[dwithbrackets] <- gsub("([\\s])|[[:punct:]]", "\\1", gsub("^.+(?=[\\[\\{])", "", remove_articles(superdat$Title[dwithbrackets]), perl=TRUE))
+    rem_nat_char_Title[dwithbrackets] <- gsub('[0-9]+', '',   rem_nat_char_Title[dwithbrackets])
+    rem_nat_char_Title[dwithbrackets] <- gsub("\\s+", " ", rem_nat_char_Title[dwithbrackets])
+    rem_nat_char_Title[dwithbrackets] <- gsub("^\\s+|\\s+$", "", rem_nat_char_Title[dwithbrackets])
+    superdat$indexN[dwithbrackets] <- remove_articles(rem_nat_char_Title[dwithbrackets])
+
+    #subset for data without brackets
+    dwithoutbrackets<-!grepl("\\[|\\]", remove_articles(superdat$Title))
+    superdat$indexN[dwithoutbrackets] <- gsub("([\\s])|[[:punct:]]", "\\1", remove_articles(superdat$Title[dwithoutbrackets]), perl=TRUE)
+    superdat$indexN[dwithoutbrackets] <- gsub('[0-9]+', '',   superdat$indexN[dwithoutbrackets])
+    superdat$indexN[dwithoutbrackets] <- gsub("\\s+", " ", superdat$indexN[dwithoutbrackets])
+    superdat$indexN[dwithoutbrackets] <- gsub("^\\s+|\\s+$", "", superdat$indexN[dwithoutbrackets])
+
+    }else{
+      superdat$indexN <- gsub("([\\s])|[[:punct:]]", "\\1", remove_articles(superdat$Title), perl=TRUE)
+      #superdat$indexN <- gsub("\u00B4", "", superdat$indexN)
+      superdat$indexN <- gsub('[0-9]+', '',   superdat$indexN)
+      superdat$indexN <- gsub("\\s+", " ", superdat$indexN)
+      superdat$indexN <- gsub("^\\s+|\\s+$", "", superdat$indexN)
+      if(diacriticslatinization){
+        Encoding(superdat[["indexN"]]) <- "UTF-8"
+        superdat$indexN <- stri_trans_general(superdat$indexN,"Latin-ASCII")
+      }
     }
-  }
 
   index_frame<-superdat%>%select(Hierarchical_Relationship, Group, indexN)%>%
     filter(Hierarchical_Relationship==1)%>%
